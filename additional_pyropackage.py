@@ -1,92 +1,136 @@
-from typing import Callable, Optional, Tuple, List
-import asyncio
-import pyrogram
-from pyrogram import Client
-from pyrogram import raw
+from dataclasses import dataclass
+from typing import Callable, Optional, List
 
-client = Client(name='', api_id=111, api_hash="",
-                phone_number="")
+from loguru import logger
+from pyrogram import Client, raw
+from pyrogram.raw.types import DialogFilter, DialogFilterDefault
+
+
+client: Client = ...
+
+
+@dataclass
+class FolderStat:
+    folder_title: str
+    peers_len: int
 
 
 class Additional:
+
     @staticmethod
-    async def get_new_folder_id(p_client: pyrogram.Client) -> int:
+    async def users_to_peers(users_ids: list[int]):
+        return [await client.resolve_peer(user_id) for user_id in users_ids]
+
+    @staticmethod
+    async def get_new_folder_id() -> int:
         folders = list(filter(
             lambda x: hasattr(x, 'id'),
-            await p_client.invoke(raw.functions.messages.GetDialogFilters()))
+            await client.invoke(raw.functions.messages.GetDialogFilters()))
         )
         return max(folders, key=lambda x: x.id).id + 1 if folders else 10
 
     @staticmethod
-    async def get_dialog_filters(
-            p_client: pyrogram.Client,
+    async def _get_dialog_filters(
             folders_filter: Optional[Callable] = None
-    ) -> List[raw.types.DialogFilter | raw.types.DialogFilterDefault]:
+    ) -> List[DialogFilter | DialogFilterDefault]:
 
-        folders = await p_client.invoke(raw.functions.messages.GetDialogFilters())
+        folders = await client.invoke(raw.functions.messages.GetDialogFilters())
         updated_folders = [folder for folder in folders if not folders_filter or folders_filter(folder)]
         return updated_folders
 
     @classmethod
-    async def add_user_to_folder(
-            cls,
-            p_client: pyrogram.Client,
-            users_id: list[int],
-            folder_id: int = None,
-            folder_title: str = None
-            ) -> bool:
-        folder_filters = await cls.get_dialog_filters(
-            p_client,
-            lambda folder: (hasattr(folder, 'id') and folder.id == folder_id) or
-                           (hasattr(folder, 'title') and folder.title.lower() == folder_title)
-            )
+    async def create_dialog_filter(cls, title: str, *, users: list[int] = ()) -> DialogFilter:
+        users = await cls.users_to_peers(users)
+        if len(users) == 0:
+            client_id = (await client.get_me()).id
+            users = [await client.resolve_peer(client_id)]
 
-        if folder_filters:
-            folder_filters = folder_filters[0]
-            folder_id = folder_filters.id
-        else:
-            # create new folder if not found folder with id/title
-            folder_id = await cls.get_new_folder_id(p_client)
-            folder_filters = pyrogram.raw.types.DialogFilter(
-                id=folder_id,
-                title=folder_title or 'manual',
-                pinned_peers=raw.core.List([]),
-                include_peers=raw.core.List([]),
-                exclude_peers=raw.core.List([]),
-                contacts=False, non_contacts=False, groups=False, broadcasts=False,
-                bots=False, exclude_muted=False, exclude_read=False, exclude_archived=True,
-                emoticon=''
-            )
-        users_for_folder = []
-        for user_id in users_id:
-            new_peer = await p_client.resolve_peer(user_id)
-            users_for_folder.append(new_peer)
-        folder_filters.include_peers = raw.core.List(users_for_folder)
-        return await p_client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder_id, filter=folder_filters))
+        folder_filters = DialogFilter(
+            id=(await cls.get_new_folder_id()),
+            title=title,
+            pinned_peers=raw.core.List([]),
+            include_peers=raw.core.List(users),
+            exclude_peers=raw.core.List([]),
+            contacts=False, non_contacts=False, groups=False, broadcasts=False,
+            bots=False, exclude_muted=False, exclude_read=False, exclude_archived=True,
+            emoticon=''
+        )
+        await client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder_filters.id, filter=folder_filters))
+        return folder_filters
 
     @classmethod
-    async def get_all_users_folder(cls, p_client: pyrogram.Client):
-        folder_filters = await cls.get_dialog_filters(p_client)
+    async def get_daily_folders(cls) -> list[DialogFilter]:
+        folders_categories = ['А', 'Ю', 'К', 'Е']
+        folders_days = ['Позавчера', 'Вчера', 'Сегодня']
+        folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
+                          for folder_category in folders_categories
+                          }
 
-        users_id = []
-        folders_title = ['А', 'Ю', 'К', 'Е']
-        folder_day = ['Послезавтра ', 'Завтра ', 'Сегодня ']
+        # Getting necessary folders
+        folders_filters = [lambda folder: hasattr(folder, 'title') and folder.title in folders_titles]
+        folders = await cls._get_dialog_filters(lambda folder: any([filter_(folder) for filter_ in folders_filters]))
+        return folders
 
-        for folder_filter in folder_filters:
-            for i, day in enumerate(folder_day):
-                folder_name = folder_day[i + 1] + folders_title[i % len(folders_title)]
-                for user in folder_filter.include_peers:
-                    if folder_filter.title.startswith(day) and not folder_filter.title.startswith('Послезавтра'):
-                        users_id.append(user.user_id)
-                await cls.add_user_to_folder(p_client, users_id=users_id, folder_title=folder_name)  # TODO
+    @staticmethod
+    def _sort_daily_folders_by_title(folders: list[DialogFilter]):
+        sorting_order = ["Позавчера", "Вчера", "Сегодня"]
+        folders.sort(key=lambda folder: sorting_order.index(folder.title.split()[0]))
 
+    @staticmethod
+    def _select_new_include_peers(folder_title: str,
+                                  folders: list[DialogFilter],
+                                  client_id: int
+                                  ):
+        folder_day = folder_title.split()[0]
+        if folder_day == "Сегодня":
+            return raw.core.List([client_id])
+        # Если folder=Вчера, то берёт из Сегодня; Если folder=Позавчера, то берёт из Вчера
+        necessary_folder_title = {"Вчера": "Сегодня", "Позавчера": "Вчера"}[folder_day] + f' {folder_title[0]}'
+        for folder in folders:
+            if folder.title == necessary_folder_title:
+                return folder.include_peers
+        raise ValueError(f"Necessary directory is not found: <{necessary_folder_title}>")
 
-async def main():
-    async with client:
-        print(await Additional.get_dialog_filters(client))
+    @classmethod
+    async def add_user_to_folder(cls, folder_title: str, user_id: int):
+        peer = await client.resolve_peer(user_id)
+        folders = await cls._get_dialog_filters(lambda f: hasattr(f, 'title') and f.title == folder_title)
+        if not folders:
+            await cls.create_dialog_filter(folder_title, users=[user_id])
+        else:
+            folder = folders[0]
+            if len(folder.include_peers) == 200:
+                logger.info(f"{folder_title} has limit peers. So user [{user_id}] wasn't add to folder")
+                return
+            folder.include_peers.append(peer)
+            await client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder.id, filter=folder))
 
+    @classmethod
+    async def get_today_folders(cls) -> list[DialogFilter]:
+        titles = [f'Сегодня {category}' for category in "АЮКЕ"]
+        folders = await cls._get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
+        return folders
 
-if __name__ == '__main__':
-    # pass
-    # Другой прайс folder_id = 2
-    asyncio.run(main())
+    @classmethod
+    async def get_all_users_folder(cls):
+        # Getting necessary folders
+        folders = await cls.get_daily_folders()
+        folders_titles = set(folder.title for folder in folders)
+
+        # Creating non existing folders
+        non_existing_folders_titles = folders_titles - {folder.title for folder in folders}
+        folders.extend([await cls.create_dialog_filter(title) for title in non_existing_folders_titles])
+
+        cls._sort_daily_folders_by_title(folders)
+        # Вчера -> Позавчера; Сегодня -> Вчера; Сегодня -> []
+        client_id = (await client.get_me()).id
+        folders = [(folder, cls._select_new_include_peers(folder.title, folders, client_id)) for folder in folders]
+        for folder, new_included_peers in folders:
+            folder.include_peers = new_included_peers
+            await client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder.id, filter=folder))
+
+    @classmethod
+    async def get_folders_statistic(cls) -> list[FolderStat]:
+        folders = await cls.get_daily_folders()
+        folders_stat = [FolderStat(folder.title, len(folder.include_peers)) for folder in folders]
+        return folders_stat
