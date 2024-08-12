@@ -68,7 +68,7 @@ class Additional:
 
     @classmethod
     def _get_daily_folders_titles(cls):
-        folders_categories = ['Ю', 'К', 'Е']
+        folders_categories = ['А', 'Ю', 'К', 'Е']
         folders_days = ['Позавчера', 'Вчера', 'Сегодня']
         folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
                           for folder_category in folders_categories
@@ -111,7 +111,7 @@ class Additional:
 
     @classmethod
     async def get_today_folders(cls) -> list[DialogFilter]:
-        titles = [f'Сегодня {category}' for category in "ЮКЕ"]
+        titles = [f'Сегодня {category}' for category in "АЮКЕ"]
         folders = await cls._get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
         return folders
 
