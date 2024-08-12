@@ -1,4 +1,3 @@
-import asyncio
 from dataclasses import dataclass
 from typing import Callable, Optional, List
 
@@ -118,13 +117,13 @@ class Additional:
 
     @classmethod
     async def dispatch_users_via_daily_folders(cls):
+        logger.info('Function **dispatch_users_via_daily_folders** started')
         # Getting necessary folders
         folders = await cls.get_daily_folders()
         folders_titles = set(folder.title for folder in folders)
 
         # Creating non existing folders
         non_existing_folders_titles = cls._get_daily_folders_titles() - folders_titles
-        print(f'non_existing_folders_titles: {non_existing_folders_titles}')
         folders.extend([await cls.create_dialog_filter(title) for title in non_existing_folders_titles])
 
         cls._sort_daily_folders_by_title(folders)
@@ -137,6 +136,7 @@ class Additional:
 
     @classmethod
     async def get_folders_statistic(cls) -> list[FolderStat]:
+        logger.info('Function **get_folders_statistic** started')
         folders = await cls.get_daily_folders()
         folders_stat = [FolderStat(folder.title, len(folder.include_peers)) for folder in folders]
         return folders_stat
