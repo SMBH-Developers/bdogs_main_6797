@@ -1,12 +1,10 @@
-import asyncio
-
 from loguru import logger
 
 from src.config import client
 from src.models import db
 
 
-async def check_dialogs():
+async def main():
     await client.start()
     async for dialog in client.get_dialogs():
         if not await db.check_user_exists(dialog.chat.id):
@@ -16,6 +14,6 @@ async def check_dialogs():
 
 if __name__ == '__main__':
     try:
-        asyncio.run(client.run())
+        client.run(main())
     finally:
         client.stop()
