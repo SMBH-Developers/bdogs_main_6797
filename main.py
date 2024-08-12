@@ -3,7 +3,7 @@ import asyncio
 from pyrogram import Client, filters, types
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from src.config import settings, client
+from src.config import client
 from src.models import db
 from src.utils import Additional
 
@@ -24,8 +24,8 @@ async def send_folders_statistic():
 
 def main():
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
-    scheduler.add_job(trigger='cron', hour='00', minute='00', func=send_folders_statistic)
     scheduler.add_job(trigger='cron', hour='23', minute='55', func=send_folders_statistic)
+    scheduler.add_job(trigger='cron', hour='23', minute='59', func=Additional.dispatch_users_via_daily_folders)
     scheduler.start()
 
 

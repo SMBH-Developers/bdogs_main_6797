@@ -117,7 +117,7 @@ class Additional:
         return folders
 
     @classmethod
-    async def get_all_users_folder(cls):
+    async def dispatch_users_via_daily_folders(cls):
         # Getting necessary folders
         folders = await cls.get_daily_folders()
         folders_titles = set(folder.title for folder in folders)

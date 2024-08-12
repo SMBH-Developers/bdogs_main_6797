@@ -1,8 +1,6 @@
-import json
-
 from pyrogram import Client
 
-from src.constants import SESSIONS_DIR, IGNORE_LIST_PATH
+from src.constants import SESSIONS_DIR
 from . import settings, _logger_config
 
 
