@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    name: str
     api_id: int
     api_hash: str
     phone_number: str
