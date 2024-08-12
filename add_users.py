@@ -3,6 +3,7 @@ import asyncio
 from src.config import client
 from src.models import db
 
+
 async def check_dialogs():
     await client.start()
     async for dialog in client.get_dialogs():
