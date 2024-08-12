@@ -4,8 +4,8 @@ import pyrogram
 from pyrogram import Client
 from pyrogram import raw
 
-client = Client(name="Main_7491", api_id=28153256, api_hash="b0dd35218d3a51ee833eefbafad508ff",
-                phone_number="+88803467491")
+client = Client(name='', api_id=111, api_hash="",
+                phone_number="")
 
 
 class Additional:
@@ -73,16 +73,12 @@ class Additional:
         folder_day = ['Послезавтра ', 'Завтра ', 'Сегодня ']
 
         for folder_filter in folder_filters:
-            for user in folder_filter.include_peers:
-                for i, day in enumerate(folder_day):
+            for i, day in enumerate(folder_day):
+                folder_name = folder_day[i + 1] + folders_title[i % len(folders_title)]
+                for user in folder_filter.include_peers:
                     if folder_filter.title.startswith(day) and not folder_filter.title.startswith('Послезавтра'):
-                        folder_name = folder_day[i + 1] + folders_title[i % len(folders_title)]
                         users_id.append(user.user_id)
-                    elif folder_filter.title.startswith('Послезавтра'):
-                        pass
-
-        for day in folder_day:
-            await cls.add_user_to_folder(p_client, users_id=users_id, folder_title=day)  #TODO
+                await cls.add_user_to_folder(p_client, users_id=users_id, folder_title=folder_name)  # TODO
 
 
 async def main():
