@@ -1,12 +1,12 @@
+import asyncio
 from dataclasses import dataclass
 from typing import Callable, Optional, List
 
 from loguru import logger
-from pyrogram import Client, raw
+from pyrogram import raw
 from pyrogram.raw.types import DialogFilter, DialogFilterDefault
 
-
-client: Client = ...
+from src.config import client
 
 
 @dataclass
@@ -60,16 +60,21 @@ class Additional:
 
     @classmethod
     async def get_daily_folders(cls) -> list[DialogFilter]:
-        folders_categories = ['А', 'Ю', 'К', 'Е']
-        folders_days = ['Позавчера', 'Вчера', 'Сегодня']
-        folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
-                          for folder_category in folders_categories
-                          }
+        folders_titles = cls._get_daily_folders_titles()
 
         # Getting necessary folders
         folders_filters = [lambda folder: hasattr(folder, 'title') and folder.title in folders_titles]
         folders = await cls._get_dialog_filters(lambda folder: any([filter_(folder) for filter_ in folders_filters]))
         return folders
+
+    @classmethod
+    def _get_daily_folders_titles(cls):
+        folders_categories = ['Ю', 'К', 'Е']
+        folders_days = ['Позавчера', 'Вчера', 'Сегодня']
+        folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
+                          for folder_category in folders_categories
+                          }
+        return folders_titles
 
     @staticmethod
     def _sort_daily_folders_by_title(folders: list[DialogFilter]):
@@ -77,15 +82,15 @@ class Additional:
         folders.sort(key=lambda folder: sorting_order.index(folder.title.split()[0]))
 
     @staticmethod
-    def _select_new_include_peers(folder_title: str,
+    async def _select_new_include_peers(folder_title: str,
                                   folders: list[DialogFilter],
                                   client_id: int
                                   ):
         folder_day = folder_title.split()[0]
         if folder_day == "Сегодня":
-            return raw.core.List([client_id])
+            return raw.core.List([await client.resolve_peer(client_id)])
         # Если folder=Вчера, то берёт из Сегодня; Если folder=Позавчера, то берёт из Вчера
-        necessary_folder_title = {"Вчера": "Сегодня", "Позавчера": "Вчера"}[folder_day] + f' {folder_title[0]}'
+        necessary_folder_title = {"Вчера": "Сегодня", "Позавчера": "Вчера"}[folder_day] + f' {folder_title[-1]}'
         for folder in folders:
             if folder.title == necessary_folder_title:
                 return folder.include_peers
@@ -107,7 +112,7 @@ class Additional:
 
     @classmethod
     async def get_today_folders(cls) -> list[DialogFilter]:
-        titles = [f'Сегодня {category}' for category in "АЮКЕ"]
+        titles = [f'Сегодня {category}' for category in "ЮКЕ"]
         folders = await cls._get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
         return folders
 
@@ -118,13 +123,14 @@ class Additional:
         folders_titles = set(folder.title for folder in folders)
 
         # Creating non existing folders
-        non_existing_folders_titles = folders_titles - {folder.title for folder in folders}
+        non_existing_folders_titles = cls._get_daily_folders_titles() - folders_titles
+        print(f'non_existing_folders_titles: {non_existing_folders_titles}')
         folders.extend([await cls.create_dialog_filter(title) for title in non_existing_folders_titles])
 
         cls._sort_daily_folders_by_title(folders)
         # Вчера -> Позавчера; Сегодня -> Вчера; Сегодня -> []
         client_id = (await client.get_me()).id
-        folders = [(folder, cls._select_new_include_peers(folder.title, folders, client_id)) for folder in folders]
+        folders = [(folder, await cls._select_new_include_peers(folder.title, folders, client_id)) for folder in folders]
         for folder, new_included_peers in folders:
             folder.include_peers = new_included_peers
             await client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder.id, filter=folder))
@@ -134,3 +140,4 @@ class Additional:
         folders = await cls.get_daily_folders()
         folders_stat = [FolderStat(folder.title, len(folder.include_peers)) for folder in folders]
         return folders_stat
+
