@@ -18,19 +18,17 @@ async def registration_user(_: Client, message: types.Message):
 
 
 async def send_folders_statistic():
-    folders_stat = await Additional.get_folders_statistic()
-    await client.send_message('me', text='\n'.join([f'{folder_stat.folder_title} - {folder_stat.peers_len}' for folder_stat in folders_stat]))
+    categories_folders_stat = await Additional.get_folders_statistic()
+    stat = '\n\n'.join([category_folders.to_text() for category_folders in categories_folders_stat])
+    await client.send_message('me', text=stat)
 
 
 def main():
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
-    scheduler.add_job(trigger='cron', hour='23', minute='55', func=send_folders_statistic)
-    scheduler.add_job(trigger='cron', hour='23', minute='59', func=Additional.dispatch_users_via_daily_folders)
+    scheduler.add_job(trigger='cron', hour='23', minute='59', func=send_folders_statistic)
+    scheduler.add_job(trigger='cron', hour='0', minute='0', func=Additional.dispatch_users_via_daily_folders)
     scheduler.start()
 
 
-
-try:
+if __name__ == '__main__':
     client.run(main())
-finally:
-    pass

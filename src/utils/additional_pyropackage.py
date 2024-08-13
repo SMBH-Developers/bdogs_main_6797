@@ -13,6 +13,24 @@ class FolderStat:
     folder_title: str
     peers_len: int
 
+    def to_text(self) -> str:
+        return f'{self.folder_title} - {self.peers_len}'
+
+
+@dataclass
+class FoldersCategoryStat:
+    folders_stat: list[FolderStat]
+
+    @property
+    def total_count(self):
+        return sum([folder_stat.peers_len for folder_stat in self.folders_stat])
+
+    def to_text(self) -> str:
+        stat = '\n'.join([folder_stat.to_text() for folder_stat in self.folders_stat])
+        stat += f'\n\nВсего: {self.total_count}'
+
+        return stat
+
 
 class Additional:
 
@@ -81,18 +99,18 @@ class Additional:
         folders.sort(key=lambda folder: sorting_order.index(folder.title.split()[0]))
 
     @staticmethod
-    async def _select_new_include_peers(folder_title: str,
-                                  folders: list[DialogFilter],
-                                  client_id: int
-                                  ):
+    async def _select_folder_of_new_peers(folder_title: str,
+                                          folders: list[DialogFilter],
+                                          client_id: int
+                                          ) -> tuple[list, list]:
         folder_day = folder_title.split()[0]
         if folder_day == "Сегодня":
-            return raw.core.List([await client.resolve_peer(client_id)])
+            return raw.core.List([await client.resolve_peer(client_id)]), raw.core.List([])
         # Если folder=Вчера, то берёт из Сегодня; Если folder=Позавчера, то берёт из Вчера
         necessary_folder_title = {"Вчера": "Сегодня", "Позавчера": "Вчера"}[folder_day] + f' {folder_title[-1]}'
         for folder in folders:
             if folder.title == necessary_folder_title:
-                return folder.include_peers
+                return folder.include_peers, folder.pinned_peers
         raise ValueError(f"Necessary directory is not found: <{necessary_folder_title}>")
 
     @classmethod
@@ -129,15 +147,24 @@ class Additional:
         cls._sort_daily_folders_by_title(folders)
         # Вчера -> Позавчера; Сегодня -> Вчера; Сегодня -> []
         client_id = (await client.get_me()).id
-        folders = [(folder, await cls._select_new_include_peers(folder.title, folders, client_id)) for folder in folders]
-        for folder, new_included_peers in folders:
-            folder.include_peers = new_included_peers
+        folders = [(folder, await cls._select_folder_of_new_peers(folder.title, folders, client_id)) for folder in folders]
+        for folder, peers_tuple in folders:
+            folder.include_peers, folder.pinned_peers = peers_tuple
             await client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder.id, filter=folder))
 
     @classmethod
-    async def get_folders_statistic(cls) -> list[FolderStat]:
+    async def get_folders_statistic(cls) -> list[FoldersCategoryStat]:
         logger.info('Function **get_folders_statistic** started')
         folders = await cls.get_daily_folders()
         folders_stat = [FolderStat(folder.title, len(folder.include_peers)) for folder in folders]
-        return folders_stat
 
+        # Gathering to categories
+        folders_categories = {"Сегодня": [], "Вчера": [], "Позавчера": []}
+        for folder in folders_stat:
+            folder_category = folder.folder_title.split()[0]
+            folders_categories[folder_category].append(folder)
+        categories_stat = [
+            FoldersCategoryStat(folders_by_category) for folders_by_category in folders_categories.values()
+        ]
+
+        return categories_stat
