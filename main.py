@@ -1,6 +1,5 @@
 # import asyncio
-import logging
-
+from loguru import logger
 from pyrogram import Client, filters, types, idle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
@@ -11,11 +10,14 @@ from src.utils import Additional
 
 @client.on_message(filters.private & ~filters.me & ~filters.bot)
 async def registration_user(_: Client, message: types.Message):
+    logger.debug(f'[{message.from_user.id}] sent message')
     if not await db.check_user_exists(message.from_user.id):
         await db.registrate_user(message.from_user.id)
         folders = await Additional.get_today_folders()
         folder = min(folders, key=lambda folder_x: len(folder_x.include_peers))
         await Additional.add_user_to_folder(folder.title, message.from_user.id)
+    else:
+        logger.debug(f'[{message.from_user.id}] exists')
 
 
 async def send_folders_statistic():
