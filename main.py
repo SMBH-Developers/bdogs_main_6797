@@ -1,4 +1,5 @@
 # import asyncio
+import logging
 
 from pyrogram import Client, filters, types, idle
 # from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -39,6 +40,9 @@ def on_shutdown():
 
 
 if __name__ == '__main__':
+    logging.basicConfig()
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+
     try:
         client.run(main())
     finally:
