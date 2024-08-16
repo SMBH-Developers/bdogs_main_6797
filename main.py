@@ -8,9 +8,10 @@ from src.models import db
 from src.utils import Additional
 
 
-@client.on_message(filters.private, group=2)
+@client.on_message(group=2)
 async def got_message(_: Client, message: types.Message):
-    logger.debug(f'Second handler got message by [{message.from_user.id}]')
+    if hasattr(message, 'from_user'):
+        logger.debug(f'Second handler got message by [{message.from_user.id}]')
 
 
 @client.on_message(filters.private & ~filters.me & ~filters.bot)
