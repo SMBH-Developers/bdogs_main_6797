@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import BIGINT, TIMESTAMP, func
+from sqlalchemy import BIGINT, TIMESTAMP, func, String
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
 
-__all__ = ["Base", "User"]
+__all__ = ["Base", "User", "Shift"]
 
 
 Base = declarative_base()
@@ -15,3 +15,9 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
     registration_date: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
+
+class Shift(Base):
+    __tablename__ = 'shifts'
+
+    data: Mapped[datetime]
+    managers: Mapped[str] = mapped_column(String(5))

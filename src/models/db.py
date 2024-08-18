@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 
 from src.models._engine import async_session
 from ._models import *
@@ -17,3 +20,17 @@ async def check_user_exists(id_: int) -> bool:
     if exists is None:
         return False
     return True
+
+
+async def get_managers_today() -> str | None:
+    today = datetime.now().strftime("%Y-%m-%d")
+    async with async_session() as session:
+        managers = (await session.execute(select(Shift.managers).where(Shift.data == today))).scalar_one_or_none()
+    return managers
+
+
+async def set_managers_shifts(shifts: dict):
+    async with async_session() as session:
+        for date, managers in shifts:
+            await session.execute(insert(Shift).values(date=date, managers=managers).on_conflict_do_update())
+        await session.commit()

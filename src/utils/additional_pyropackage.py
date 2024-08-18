@@ -6,6 +6,7 @@ from pyrogram import raw
 from pyrogram.raw.types import DialogFilter, DialogFilterDefault
 
 from src.config import client
+from src.models import db
 
 
 @dataclass
@@ -77,7 +78,7 @@ class Additional:
 
     @classmethod
     async def get_daily_folders(cls) -> list[DialogFilter]:
-        folders_titles = cls._get_daily_folders_titles()
+        folders_titles = await cls._get_daily_folders_titles()
 
         # Getting necessary folders
         folders_filters = [lambda folder: hasattr(folder, 'title') and folder.title in folders_titles]
@@ -85,8 +86,9 @@ class Additional:
         return folders
 
     @classmethod
-    def _get_daily_folders_titles(cls):
-        folders_categories = ['А', 'Ю', 'К', 'Е', 'С']
+    async def _get_daily_folders_titles(cls):
+        managers = await db.get_managers_today()
+        folders_categories = list(managers) if managers is not None else ['А', 'Ю', 'К', 'Е', 'С']
         folders_days = ['Позавчера', 'Вчера', 'Сегодня']
         folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
                           for folder_category in folders_categories
@@ -129,7 +131,9 @@ class Additional:
 
     @classmethod
     async def get_today_folders(cls) -> list[DialogFilter]:
-        titles = [f'Сегодня {category}' for category in "АЮКЕС"]
+        managers_today = await db.get_managers_today()
+        managers = managers_today if managers_today is not None else "АЮКЕС"
+        titles = [f'Сегодня {category}' for category in managers]
         folders = await cls._get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
         return folders
 
@@ -141,7 +145,7 @@ class Additional:
         folders_titles = set(folder.title for folder in folders)
 
         # Creating non existing folders
-        non_existing_folders_titles = cls._get_daily_folders_titles() - folders_titles
+        non_existing_folders_titles = await cls._get_daily_folders_titles() - folders_titles
         folders.extend([await cls.create_dialog_filter(title) for title in non_existing_folders_titles])
 
         cls._sort_daily_folders_by_title(folders)
