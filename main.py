@@ -1,4 +1,5 @@
 # import asyncio
+import re
 from datetime import datetime, timedelta
 
 from loguru import logger
@@ -30,13 +31,19 @@ async def managers(_: Client, message: types.Message):
         return
 
     managers_dict = {}
+    param = " ".join(message.command[1:])
+    parts = re.findall(r'(\w+)\s*—\s*(\w+)', param)
+
     try:
-        for param in message.command[1:]:
-            parts = param.split('—')
-            if len(parts) == 2:
-                day = parts[0].strip().lower()
-                value = parts[1].strip()
-                managers_dict[get_date_by_weekday(day).strftime("%Y-%m-%d")] = value
+        for day, value in parts:
+            managers_dict[get_date_by_weekday(day).strftime("%Y-%m-%d")] = value
+    #     for param in message.command[1:]:
+    #         parts = re.findall(r'', param)
+    #         # parts = param.split('—')
+    #         if len(parts) == 2:
+    #             day = parts[0].strip().lower()
+    #             value = parts[1].strip()
+    #             managers_dict[get_date_by_weekday(day).strftime("%Y-%m-%d")] = value
         await db.set_managers_shifts(managers_dict)
         await client.send_message('me', 'Успешно обновил смены!')
     except Exception as e:
