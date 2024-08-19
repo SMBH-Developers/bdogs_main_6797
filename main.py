@@ -21,18 +21,19 @@ async def managers(_: Client, message: types.Message):
 
     try:
         for weekday in weekdays:
-            weekday_shifts = re.search(fr'{weekday}\s*:\s*(.+)', text, re.IGNORECASE)
+            weekday_shifts = re.search(fr'{weekday}\s*-\s*(.+)', text, re.IGNORECASE)
             if weekday_shifts is None:
                 return await client.send_message('me', f"Ошибка! День недели {weekday} не найден")
             weekday_shifts = weekday_shifts.group(1)
-            if set(weekday_shifts).issubset(available_managers):
+            if not set(weekday_shifts).issubset(available_managers):
                 return await client.send_message('me', f"Ошибка! Доступны только менеджеры: {available_managers}\n"
                                                        f"Указаны {weekday_shifts} за {weekday}"
                                                  )
-            managers_shifts[get_date_by_weekday(weekday).strftime("%Y-%m-%d")] = weekday_shifts
+            managers_shifts[get_date_by_weekday(weekday).date()] = weekday_shifts
         await db.set_managers_shifts(managers_shifts)
         await client.send_message('me', 'Успешно обновил смены!')
     except Exception as e:
+        logger.exception('ERROR')
         await client.send_message('me', f'Ошибка! Обратитесь к разработчику\n{e}')
 
 

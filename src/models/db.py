@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
@@ -23,16 +23,16 @@ async def check_user_exists(id_: int) -> bool:
 
 
 async def get_managers_today() -> str | None:
-    today = datetime.now().strftime("%Y-%m-%d")
+    today = datetime.now().date()
     async with async_session() as session:
         stmt = select(Shift.managers).where(Shift.date == today)
         managers = (await session.execute(stmt)).scalar_one_or_none()
     return managers
 
 
-async def set_managers_shifts(shifts: dict[datetime, str]):
+async def set_managers_shifts(shifts: dict[date, str]):
     async with async_session() as session:
-        for dtm, managers in shifts:
-            date = dtm.date()
-            await session.execute(insert(Shift).values(date=date, managers=managers).on_conflict_do_update())
+        for dt, managers in shifts.items():
+            await session.execute(insert(Shift).values(date=dt, managers=managers).on_conflict_do_update(index_elements=['date'],
+                                                                                                         set_={'date': dt, 'managers': managers}))
         await session.commit()
