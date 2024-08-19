@@ -8,42 +8,32 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from src.config import client
 from src.models import db
-from src.utils import Additional
-
-
-def get_date_by_weekday(day: str):
-    days = {'понедельник': 0, 'вторник': 1, 'среда': 2,
-            'четверг': 3, 'пятница': 4, 'суббота': 5, 'воскресенье': 6}
-
-    today = datetime.now()
-
-    target_weekday = days[day.lower()]
-    days_ahead = (target_weekday - today.weekday()) % 7
-
-    day_date = today + timedelta(days=days_ahead)
-    return day_date
+from src.utils import Additional, get_date_by_weekday
 
 
 @client.on_message(filters.command('managers') & filters.me)
 async def managers(_: Client, message: types.Message):
-    if len(message.command) < 1:
-        await client.send_message('me', 'Вы не передали параметры для команды')
-        return
+    weekdays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
+    available_managers = set("АЮКЕС")
 
-    weekdays = []
-    managers_dict = {}
-    param = " ".join(message.command[1:])
+    managers_shifts = {}
+    text = message.text
 
     try:
         for weekday in weekdays:
-            parts = re.findall(fr'{weekday}\s*:\s*(.+)', param)
-            if parts is None:
-                continue
-            managers_dict[get_date_by_weekday(weekday).strftime("%Y-%m-%d")] = parts[0]
-        await db.set_managers_shifts(managers_dict)
+            weekday_shifts = re.search(fr'{weekday}\s*:\s*(.+)', text, re.IGNORECASE)
+            if weekday_shifts is None:
+                return await client.send_message('me', f"Ошибка! День недели {weekday} не найден")
+            weekday_shifts = weekday_shifts.group(1)
+            if set(weekday_shifts).issubset(available_managers):
+                return await client.send_message('me', f"Ошибка! Доступны только менеджеры: {available_managers}\n"
+                                                       f"Указаны {weekday_shifts} за {weekday}"
+                                                 )
+            managers_shifts[get_date_by_weekday(weekday).strftime("%Y-%m-%d")] = weekday_shifts
+        await db.set_managers_shifts(managers_shifts)
         await client.send_message('me', 'Успешно обновил смены!')
     except Exception as e:
-        await client.send_message('me', f'Ошибка! Обратитесь к руководству\n{e}')
+        await client.send_message('me', f'Ошибка! Обратитесь к разработчику\n{e}')
 
 
 @client.on_message(group=2)

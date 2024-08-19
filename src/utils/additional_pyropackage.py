@@ -88,7 +88,7 @@ class Additional:
     @classmethod
     async def _get_daily_folders_titles(cls):
         managers = await db.get_managers_today()
-        folders_categories = list(managers) if managers is not None else ['А', 'Ю', 'К', 'Е', 'С']
+        folders_categories = list(managers) if managers is not None else list("АЮКЕС")
         folders_days = ['Позавчера', 'Вчера', 'Сегодня']
         folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
                           for folder_category in folders_categories

@@ -25,12 +25,14 @@ async def check_user_exists(id_: int) -> bool:
 async def get_managers_today() -> str | None:
     today = datetime.now().strftime("%Y-%m-%d")
     async with async_session() as session:
-        managers = (await session.execute(select(Shift.managers).where(Shift.data == today))).scalar_one_or_none()
+        stmt = select(Shift.managers).where(Shift.date == today)
+        managers = (await session.execute(stmt)).scalar_one_or_none()
     return managers
 
 
-async def set_managers_shifts(shifts: dict):
+async def set_managers_shifts(shifts: dict[datetime, str]):
     async with async_session() as session:
-        for date, managers in shifts:
+        for dtm, managers in shifts:
+            date = dtm.date()
             await session.execute(insert(Shift).values(date=date, managers=managers).on_conflict_do_update())
         await session.commit()
