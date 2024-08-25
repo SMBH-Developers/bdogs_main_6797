@@ -14,7 +14,7 @@ from src.utils import Additional, get_date_by_weekday
 @client.on_message(filters.command('managers') & filters.me)
 async def managers(_: Client, message: types.Message):
     weekdays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
-    available_managers = set("АЮКЕС")
+    available_managers = set("АЮКЕСS")
 
     managers_shifts = {}
     text = message.text
