@@ -14,7 +14,7 @@ from src.utils import Additional, get_date_by_weekday
 @client.on_message(filters.command('managers') & filters.me)
 async def managers(_: Client, message: types.Message):
     weekdays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
-    available_managers = set("АЮКЕСS")
+    available_managers = set("АЮКЕС")
 
     managers_shifts = {}
     text = message.text
@@ -35,6 +35,30 @@ async def managers(_: Client, message: types.Message):
     except Exception as e:
         logger.exception('ERROR')
         await client.send_message('me', f'Ошибка! Обратитесь к разработчику\n{e}')
+
+
+@client.on_message(filters.chat('me') & filters.command('delete_card'))
+async def delete_card(_, message: types.Message):
+    if len(message.command) < 2:
+        await message.reply('Ошибка: Пожалуйста, укажите номер карты💳.')
+        return
+
+    card = message.command[1] if len(message.command) == 2 else ' '.join(message.command[1:])
+    count = 0
+
+    if not card.replace(' ', '').isdigit() or 16 < len(card) > 19:
+        await message.reply("Ошибка: карта должна содержать только 16 цифр.")
+        return
+
+    async for search_message in client.search_global(card):
+        try:
+            if search_message.chat.type.PRIVATE and search_message.text != f'/delete_card {card}':
+                await search_message.delete()
+                count += 1
+        except Exception as e:
+            logger.error(f'ERROR DELETE CARD | {e}')
+
+    await client.send_message(message.chat.id, f'✅ Все удалено по карте - {card}. Кол-во сообщений удалено - {count}')
 
 
 @client.on_message(group=2)

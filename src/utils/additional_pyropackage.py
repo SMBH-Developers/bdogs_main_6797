@@ -88,7 +88,7 @@ class Additional:
     @classmethod
     async def _get_daily_folders_titles(cls):
         managers = await db.get_managers_today()
-        folders_categories = list(managers) if managers is not None else list("АЮКЕСS")
+        folders_categories = list(managers) if managers is not None else list("АЮКЕС")
         folders_days = ['Позавчера', 'Вчера', 'Сегодня']
         folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
                           for folder_category in folders_categories
@@ -132,7 +132,7 @@ class Additional:
     @classmethod
     async def get_today_folders(cls) -> list[DialogFilter]:
         managers_today = await db.get_managers_today()
-        managers = managers_today if managers_today is not None else "АЮКЕСS"
+        managers = managers_today if managers_today is not None else "АЮКЕС"
         titles = [f'Сегодня {category}' for category in managers]
         folders = await cls._get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
         return folders
@@ -160,7 +160,7 @@ class Additional:
     async def get_folders_statistic(cls) -> list[FoldersCategoryStat]:
         logger.info('Function **get_folders_statistic** started')
         folders = await cls.get_daily_folders()
-        folders_stat = [FolderStat(folder.title, len(folder.include_peers)) for folder in folders]
+        folders_stat = [FolderStat(folder.title, len(folder.include_peers) + len(folder.pinned_peers)) for folder in folders]
 
         # Gathering to categories
         folders_categories = {"Сегодня": [], "Вчера": [], "Позавчера": []}
