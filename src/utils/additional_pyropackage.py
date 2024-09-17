@@ -3,7 +3,8 @@ from typing import Callable, Optional, List
 
 from loguru import logger
 from pyrogram import raw
-from pyrogram.raw.types import DialogFilter, DialogFilterDefault
+from pyrogram.raw.types import DialogFilter, DialogFilterDefault, InputPeerUser
+from pyrogram.raw.base import InputPeer
 
 from src.config import client
 from src.models import db
@@ -87,8 +88,7 @@ class Additional:
 
     @classmethod
     async def _get_daily_folders_titles(cls):
-        managers = await db.get_managers_today()
-        folders_categories = list(managers) if managers is not None else list("АЮКЕС")
+        folders_categories = list("АЮКЕС")
         folders_days = ['Позавчера', 'Вчера', 'Сегодня']
         folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
                           for folder_category in folders_categories
@@ -157,10 +157,14 @@ class Additional:
             await client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder.id, filter=folder))
 
     @classmethod
+    def extract_ids_from_peers(cls, peers: list[InputPeer]) -> list[int]:
+        return [peer.user_id for peer in peers if isinstance(peer, InputPeerUser)]
+
+    @classmethod
     async def get_folders_statistic(cls) -> list[FoldersCategoryStat]:
         logger.info('Function **get_folders_statistic** started')
         folders = await cls.get_daily_folders()
-        folders_stat = [FolderStat(folder.title, len(folder.include_peers) + len(folder.pinned_peers)) for folder in folders]
+        folders_stat = [FolderStat(folder.title, len(set(cls.extract_ids_from_peers(folder.include_peers)) - set(cls.extract_ids_from_peers(folder.exclude_peers)))) for folder in folders]
 
         # Gathering to categories
         folders_categories = {"Сегодня": [], "Вчера": [], "Позавчера": []}

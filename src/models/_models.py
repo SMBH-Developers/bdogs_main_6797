@@ -4,7 +4,7 @@ from sqlalchemy import BIGINT, TIMESTAMP, DATE, func, String
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
 
-__all__ = ["Base", "User", "Shift"]
+__all__ = ["Base", "User", "Shift", "Card"]
 
 
 Base = declarative_base()
@@ -22,3 +22,10 @@ class Shift(Base):
 
     date: Mapped[date] = mapped_column(DATE, primary_key=True)
     managers: Mapped[str] = mapped_column(String(5))
+
+
+class Card(Base):
+    __tablename__ = 'cards'
+
+    card: Mapped[int] = mapped_column(BIGINT, primary_key=True)
+    status: Mapped[str] = mapped_column(String(128), comment='Card like 1234567891234567')
