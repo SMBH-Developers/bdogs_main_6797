@@ -21,7 +21,6 @@ async def statistic(_: Client, message: types.Message):
     await client.send_message('me', text=stat)
 
 
-
 @client.on_message(filters.command('managers') & filters.me)
 async def managers(_: Client, message: types.Message):
     weekdays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
@@ -117,8 +116,9 @@ async def registration_user(_: Client, message: types.Message):
     if not await db.check_user_exists(message.from_user.id):
         await db.registrate_user(message.from_user.id)
         folders = await Additional.get_today_folders()
-        managers = await db.get_managers_today()
-        folders = [folder for folder in folders if folder.title[-1] in (managers if managers is not None else 'АЮКЕС')]
+        print(folders)
+        managers_today = await db.get_managers_today()
+        folders = [folder for folder in folders if folder.title[-2:] in (managers_today if managers_today is not None else 'Ек Ка Су Ди Ек2')]
         folder = min(folders, key=lambda folder_x: len(folder_x.include_peers))
         await Additional.add_user_to_folder(folder.title, message.from_user.id)
     else:
@@ -136,7 +136,7 @@ async def main():
 
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
     scheduler.add_job(trigger='cron', hour='23', minute='59', func=send_folders_statistic)
-    scheduler.add_job(trigger='cron', hour='0', minute='0', func=Additional.dispatch_users_via_daily_folders)
+    #scheduler.add_job(trigger='cron', hour='0', minute='0', func=Additional.dispatch_users_via_daily_folders)
     scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
 

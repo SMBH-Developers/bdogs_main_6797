@@ -55,6 +55,7 @@ class Additional:
 
         folders = await client.invoke(raw.functions.messages.GetDialogFilters())
         updated_folders = [folder for folder in folders if not folders_filter or folders_filter(folder)]
+        print(updated_folders)
         return updated_folders
 
     @classmethod
@@ -88,8 +89,9 @@ class Additional:
 
     @classmethod
     async def _get_daily_folders_titles(cls):
-        folders_categories = list("АЮКЕС")
-        folders_days = ['Позавчера', 'Вчера', 'Сегодня']
+        #folders_categories = list("АЮКЕС")
+        folders_categories = ['Ек', 'Ка', 'Су', 'Ди', 'Ек2']
+        folders_days = ['Сегодня', 'База']
         folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
                           for folder_category in folders_categories
                           }
@@ -97,7 +99,7 @@ class Additional:
 
     @staticmethod
     def _sort_daily_folders_by_title(folders: list[DialogFilter]):
-        sorting_order = ["Позавчера", "Вчера", "Сегодня"]
+        sorting_order = ["База", "Сегодня"]
         folders.sort(key=lambda folder: sorting_order.index(folder.title.split()[0]))
 
     @staticmethod
@@ -108,8 +110,9 @@ class Additional:
         folder_day = folder_title.split()[0]
         if folder_day == "Сегодня":
             return raw.core.List([await client.resolve_peer(client_id)]), raw.core.List([])
-        # Если folder=Вчера, то берёт из Сегодня; Если folder=Позавчера, то берёт из Вчера
-        necessary_folder_title = {"Вчера": "Сегодня", "Позавчера": "Вчера"}[folder_day] + f' {folder_title[-1]}'
+
+        # Если folder=База, то берёт из Сегодня
+        necessary_folder_title = {"База": "Сегодня"}[folder_day] + f' {folder_title[-3:].replace(" ", "")}'
         for folder in folders:
             if folder.title == necessary_folder_title:
                 return folder.include_peers, folder.pinned_peers
@@ -132,7 +135,7 @@ class Additional:
     @classmethod
     async def get_today_folders(cls) -> list[DialogFilter]:
         managers_today = await db.get_managers_today()
-        managers = managers_today if managers_today is not None else "АЮКЕС"
+        managers = managers_today if managers_today is not None else ['Ек', 'Ка', 'Су', 'Ди', 'Ек2']
         titles = [f'Сегодня {category}' for category in managers]
         folders = await cls._get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
         return folders
@@ -149,7 +152,7 @@ class Additional:
         folders.extend([await cls.create_dialog_filter(title) for title in non_existing_folders_titles])
 
         cls._sort_daily_folders_by_title(folders)
-        # Вчера -> Позавчера; Сегодня -> Вчера; Сегодня -> []
+        # База -> Все чаты; Сегодня -> База
         client_id = (await client.get_me()).id
         folders = [(folder, await cls._select_folder_of_new_peers(folder.title, folders, client_id)) for folder in folders]
         for folder, peers_tuple in folders:
@@ -167,7 +170,7 @@ class Additional:
         folders_stat = [FolderStat(folder.title, len(set(cls.extract_ids_from_peers(folder.include_peers)) - set(cls.extract_ids_from_peers(folder.exclude_peers)))) for folder in folders]
 
         # Gathering to categories
-        folders_categories = {"Сегодня": [], "Вчера": [], "Позавчера": []}
+        folders_categories = {"Сегодня": [], 'База': []}
         for folder in folders_stat:
             folder_category = folder.folder_title.split()[0]
             folders_categories[folder_category].append(folder)
