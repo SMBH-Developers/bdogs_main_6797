@@ -98,25 +98,20 @@ class Additional:
         return folders_titles
 
     @staticmethod
-    def _sort_daily_folders_by_title(folders: list[DialogFilter]):
-        sorting_order = ["База", "Сегодня"]
-        folders.sort(key=lambda folder: sorting_order.index(folder.title.split()[0]))
-
-    @staticmethod
-    async def _select_folder_of_new_peers(folder_title: str,
-                                          folders: list[DialogFilter],
-                                          client_id: int
-                                          ) -> tuple[list, list]:
-        folder_day = folder_title.split()[0]
-        if folder_day == "Сегодня":
-            return raw.core.List([await client.resolve_peer(client_id)]), raw.core.List([])
-
-        # Если folder=База, то берёт из Сегодня
-        necessary_folder_title = {"База": "Сегодня"}[folder_day] + f' {folder_title[-3:].replace(" ", "")}'
+    def _group_folders(folders: list[DialogFilter]) -> dict[str, list[DialogFilter]]:
+        # Grouping
+        grouped_folders = {}
         for folder in folders:
-            if folder.title == necessary_folder_title:
-                return folder.include_peers, folder.pinned_peers
-        raise ValueError(f"Necessary directory is not found: <{necessary_folder_title}>")
+            category = folder.title.split()[-1]
+            if category not in grouped_folders:
+                grouped_folders[category] = []
+            grouped_folders[category].append(folder)
+
+        # Sorting
+        for key in grouped_folders:
+            grouped_folders[key].sort(reverse=True)  # Order: Сегодня, База
+
+        return grouped_folders
 
     @classmethod
     async def add_user_to_folder(cls, folder_title: str, user_id: int):
@@ -151,13 +146,27 @@ class Additional:
         non_existing_folders_titles = await cls._get_daily_folders_titles() - folders_titles
         folders.extend([await cls.create_dialog_filter(title) for title in non_existing_folders_titles])
 
-        cls._sort_daily_folders_by_title(folders)
-        # База -> Все чаты; Сегодня -> База
         client_id = (await client.get_me()).id
-        folders = [(folder, await cls._select_folder_of_new_peers(folder.title, folders, client_id)) for folder in folders]
-        for folder, peers_tuple in folders:
-            folder.include_peers, folder.pinned_peers = peers_tuple
-            await client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder.id, filter=folder))
+        # len(База.included_peers) - len(Сегодня.included_peers)
+        # return raw.core.List([await client.resolve_peer(client_id)]), raw.core.List([])
+        grouped_folders = cls._group_folders(folders)
+        for category, category_folders in grouped_folders.items():
+            today_folder, total_folder = category_folders
+
+            today_folder: DialogFilter
+            total_folder: DialogFilter
+
+            # TODO Here we count via len(today_folder) for SQL limit and getting total_folder.include_peers for SQL "where users.id in ..."
+            # TODO Next we change included_peers of total_folder
+
+            # **** Dont touch next
+            # In the end we clear Today directory
+            today_folder.include_peers = raw.core.List([await client.resolve_peer(client_id)])
+            today_folder.pinned_peers = raw.core.List([])
+
+            # Update today and total folders:
+            await client.invoke(raw.functions.messages.UpdateDialogFilter(id=today_folder.id, filter=today_folder))
+            await client.invoke(raw.functions.messages.UpdateDialogFilter(id=total_folder.id, filter=total_folder))
 
     @classmethod
     def extract_ids_from_peers(cls, peers: list[InputPeer]) -> list[int]:
