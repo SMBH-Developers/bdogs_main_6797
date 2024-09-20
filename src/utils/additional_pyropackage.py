@@ -156,6 +156,8 @@ class Additional:
             today_folder: DialogFilter
             total_folder: DialogFilter
 
+            old_users_to_delete = await db.get_old_users(len(today_folder.include_peers), set(cls.extract_ids_from_peers(total_folder.include_peers)))
+            total_folder.include_peers = set(total_folder.include_peers) | set(total_folder.include_peers) - set(old_users_to_delete)
             # TODO Here we count via len(today_folder) for SQL limit and getting total_folder.include_peers for SQL "where users.id in ..."
             # TODO Next we change included_peers of total_folder
 
