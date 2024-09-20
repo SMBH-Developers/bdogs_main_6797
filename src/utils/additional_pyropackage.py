@@ -55,7 +55,6 @@ class Additional:
 
         folders = await client.invoke(raw.functions.messages.GetDialogFilters())
         updated_folders = [folder for folder in folders if not folders_filter or folders_filter(folder)]
-        print(updated_folders)
         return updated_folders
 
     @classmethod
@@ -90,7 +89,7 @@ class Additional:
     @classmethod
     async def _get_daily_folders_titles(cls):
         #folders_categories = list("АЮКЕС")
-        folders_categories = ['Ек', 'Ка', 'Су', 'Ди', 'Ек2']
+        folders_categories = ['Ек', 'Ди']
         folders_days = ['Сегодня', 'База']
         folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
                           for folder_category in folders_categories
@@ -109,7 +108,7 @@ class Additional:
 
         # Sorting
         for key in grouped_folders:
-            grouped_folders[key].sort(reverse=True)  # Order: Сегодня, База
+            grouped_folders[key].sort(key=lambda folder: folder.title.split()[0] == 'База', reverse=True)  # Order: Сегодня, База
 
         return grouped_folders
 
@@ -130,7 +129,7 @@ class Additional:
     @classmethod
     async def get_today_folders(cls) -> list[DialogFilter]:
         managers_today = await db.get_managers_today()
-        managers = managers_today if managers_today is not None else ['Ек', 'Ка', 'Су', 'Ди', 'Ек2']
+        managers = managers_today if managers_today is not None else ['Ек', 'Ди']
         titles = [f'Сегодня {category}' for category in managers]
         folders = await cls._get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
         return folders
@@ -157,7 +156,8 @@ class Additional:
             total_folder: DialogFilter
 
             old_users_to_delete = await db.get_old_users(len(today_folder.include_peers), set(cls.extract_ids_from_peers(total_folder.include_peers)))
-            total_folder.include_peers = set(total_folder.include_peers) | set(total_folder.include_peers) - set(old_users_to_delete)
+            users = (set(cls.extract_ids_from_peers(today_folder.include_peers)) | set(cls.extract_ids_from_peers(today_folder.include_peers))) - set(old_users_to_delete)
+            total_folder.include_peers = [await client.resolve_peer(user) for user in users]
             # TODO Here we count via len(today_folder) for SQL limit and getting total_folder.include_peers for SQL "where users.id in ..."
             # TODO Next we change included_peers of total_folder
 

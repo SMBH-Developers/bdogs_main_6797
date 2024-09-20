@@ -112,6 +112,8 @@ async def got_message(_: Client, message: types.Message):
 
 @client.on_message(filters.private & ~filters.me & ~filters.bot)
 async def registration_user(_: Client, message: types.Message):
+    if message.from_user.id != 1371617744:
+        return
     logger.debug(f'[{message.from_user.id}] sent message')
     if not await db.check_user_exists(message.from_user.id):
         await db.registrate_user(message.from_user.id)
@@ -135,7 +137,7 @@ async def main():
 
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
     scheduler.add_job(trigger='cron', hour='23', minute='59', func=send_folders_statistic)
-    scheduler.add_job(trigger='cron', hour='0', minute='0', func=Additional.dispatch_users_via_daily_folders)
+    scheduler.add_job(trigger='cron', hour='23', minute='52', func=Additional.dispatch_users_via_daily_folders)
     scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
 

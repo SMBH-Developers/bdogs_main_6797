@@ -71,6 +71,7 @@ async def check_card_status(card: int) -> bool:
 async def get_old_users(limit: int, users: set):
     async with async_session() as session:
         old_users = (await session.execute(select(User.id).where(User.id.in_(users)).limit(limit))).scalars().all()
+    print(old_users)
     return old_users
 
 
