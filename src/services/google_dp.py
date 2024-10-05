@@ -38,12 +38,10 @@ class GoogleDP:
 
         data = await worksheet.get('A2:B50')
         cards = {}
-        print(data)
         for row in data:
             card = int(row[0])
             status = row[1]
             cards[card] = status
-        print(cards)
         if cards:
             await db.insert_cards(cards=cards)
 

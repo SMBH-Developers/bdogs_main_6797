@@ -59,7 +59,6 @@ async def update_cards_status(card: int, status: str) -> bool:
 async def check_card_status(card: int) -> bool:
     async with async_session() as session:
         status = (await session.execute(select(Card.status).where(Card.card == card).limit(1))).one_or_none()
-        print(status)
         bool_status: bool
         if status is not None and status[0] == 'black':
             bool_status = False
@@ -71,7 +70,6 @@ async def check_card_status(card: int) -> bool:
 async def get_old_users(limit: int, users: set):
     async with async_session() as session:
         old_users = (await session.execute(select(User.id).where(User.id.in_(users)).limit(limit))).scalars().all()
-    print(old_users)
     return old_users
 
 

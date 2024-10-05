@@ -24,7 +24,7 @@ async def statistic(_: Client, message: types.Message):
 @client.on_message(filters.command('managers') & filters.me)
 async def managers(_: Client, message: types.Message):
     weekdays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
-    available_managers = set("АЮКЕС")
+    available_managers = set(['Ек', 'Ди', 'Су', 'Ек2', 'Ка', 'Ан', 'Эл', 'Та', 'Ве'])
 
     managers_shifts = {}
     text = message.text
@@ -34,12 +34,12 @@ async def managers(_: Client, message: types.Message):
             weekday_shifts = re.search(fr'{weekday}\s*-\s*(.+)', text, re.IGNORECASE)
             if weekday_shifts is None:
                 return await client.send_message('me', f"Ошибка! День недели {weekday} не найден")
-            weekday_shifts = weekday_shifts.group(1)
+            weekday_shifts = weekday_shifts.group(1).strip().split()
             if not set(weekday_shifts).issubset(available_managers):
                 return await client.send_message('me', f"Ошибка! Доступны только менеджеры: {available_managers}\n"
                                                        f"Указаны {weekday_shifts} за {weekday}"
                                                  )
-            managers_shifts[get_date_by_weekday(weekday).date()] = weekday_shifts
+            managers_shifts[get_date_by_weekday(weekday).date()] = ' '.join(weekday_shifts)
         await db.set_managers_shifts(managers_shifts)
         await client.send_message('me', 'Успешно обновил смены!')
     except Exception as e:
@@ -112,14 +112,14 @@ async def got_message(_: Client, message: types.Message):
 
 @client.on_message(filters.private & ~filters.me & ~filters.bot)
 async def registration_user(_: Client, message: types.Message):
-    if message.from_user.id != 1371617744:
-        return
     logger.debug(f'[{message.from_user.id}] sent message')
     if not await db.check_user_exists(message.from_user.id):
         await db.registrate_user(message.from_user.id)
         folders = await Additional.get_today_folders()
         managers_today = await db.get_managers_today()
-        folders = [folder for folder in folders if folder.title[-3:].replace(' ', '') in (managers_today if managers_today is not None else 'Ек Ка Су Ди Ек2')]
+        folders = [folder for folder in folders if folder.title[-3:].replace(' ', '') in (managers_today if managers_today is not None else 'Су Ек2 Ка Ек Ан Эл Та Ве')]
+        for folder in folders:
+            print(f"Папка - {folder.title} Размер - {len(folder.include_peers)}")
         folder = min(folders, key=lambda folder_x: len(folder_x.include_peers))
         await Additional.add_user_to_folder(folder.title, message.from_user.id)
     else:
@@ -134,10 +134,12 @@ async def send_folders_statistic():
 
 async def main():
     await client.start()
+    managers_today = await db.get_managers_today()
+    print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
 
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
-    scheduler.add_job(trigger='cron', hour='23', minute='59', func=send_folders_statistic)
-    scheduler.add_job(trigger='cron', hour='23', minute='52', func=Additional.dispatch_users_via_daily_folders)
+    scheduler.add_job(trigger='cron', hour='23', minute='56', func=send_folders_statistic)
+    scheduler.add_job(trigger='cron', hour='00', minute='00', func=Additional.dispatch_users_via_daily_folders)
     scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
 

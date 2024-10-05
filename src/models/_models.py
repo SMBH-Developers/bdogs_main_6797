@@ -21,7 +21,7 @@ class Shift(Base):
     __tablename__ = 'shifts'
 
     date: Mapped[date] = mapped_column(DATE, primary_key=True)
-    managers: Mapped[str] = mapped_column(String(5))
+    managers: Mapped[str] = mapped_column(String(25))
 
 
 class Card(Base):

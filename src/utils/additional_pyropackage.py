@@ -88,8 +88,8 @@ class Additional:
 
     @classmethod
     async def _get_daily_folders_titles(cls):
-        #folders_categories = list("АЮКЕС")
-        folders_categories = ['Ек', 'Ди']
+        managers = await db.get_managers_today()
+        folders_categories = managers.split(" ") if managers is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве']
         folders_days = ['Сегодня', 'База']
         folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
                           for folder_category in folders_categories
@@ -129,7 +129,7 @@ class Additional:
     @classmethod
     async def get_today_folders(cls) -> list[DialogFilter]:
         managers_today = await db.get_managers_today()
-        managers = managers_today if managers_today is not None else ['Ек', 'Ди']
+        managers = managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве']
         titles = [f'Сегодня {category}' for category in managers]
         folders = await cls._get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
         return folders
@@ -150,14 +150,18 @@ class Additional:
         # return raw.core.List([await client.resolve_peer(client_id)]), raw.core.List([])
         grouped_folders = cls._group_folders(folders)
         for category, category_folders in grouped_folders.items():
-            today_folder, total_folder = category_folders
+            print(f'Папка - {category}\nСодержимое - {category_folders}')
+            total_folder, today_folder = category_folders
+            print(f'База - {total_folder}\n\nСегодня - {today_folder}\n\n')
 
             today_folder: DialogFilter
             total_folder: DialogFilter
-
-            old_users_to_delete = await db.get_old_users(len(today_folder.include_peers), set(cls.extract_ids_from_peers(total_folder.include_peers)))
-            users = (set(cls.extract_ids_from_peers(today_folder.include_peers)) | set(cls.extract_ids_from_peers(today_folder.include_peers))) - set(old_users_to_delete)
-            total_folder.include_peers = [await client.resolve_peer(user) for user in users]
+            general_set_today = today_folder.pinned_peers + today_folder.include_peers
+            general_set_total = total_folder.pinned_peers + total_folder.include_peers
+            old_users_to_delete = await db.get_old_users(len(general_set_today), set(cls.extract_ids_from_peers(general_set_total)))
+            
+            users = (set(cls.extract_ids_from_peers(general_set_total)) | set(cls.extract_ids_from_peers(general_set_today))) - set(old_users_to_delete)
+            total_folder.include_peers = raw.core.List([await client.resolve_peer(user) for user in users])
             # TODO Here we count via len(today_folder) for SQL limit and getting total_folder.include_peers for SQL "where users.id in ..."
             # TODO Next we change included_peers of total_folder
 
@@ -175,10 +179,18 @@ class Additional:
         return [peer.user_id for peer in peers if isinstance(peer, InputPeerUser)]
 
     @classmethod
+    async def get_existing_chats(cls):
+        existing_chats = []
+        async for dialog in client.get_dialogs():
+            existing_chats.append(dialog.chat.id)
+        return set(existing_chats)
+
+    @classmethod
     async def get_folders_statistic(cls) -> list[FoldersCategoryStat]:
         logger.info('Function **get_folders_statistic** started')
         folders = await cls.get_daily_folders()
-        folders_stat = [FolderStat(folder.title, len(set(cls.extract_ids_from_peers(folder.include_peers)) - set(cls.extract_ids_from_peers(folder.exclude_peers)))) for folder in folders]
+        existing_chats = await cls.get_existing_chats()
+        folders_stat = [FolderStat(folder.title, len((set(cls.extract_ids_from_peers(folder.include_peers)) & existing_chats))) for folder in folders]
 
         # Gathering to categories
         folders_categories = {"Сегодня": [], 'База': []}
