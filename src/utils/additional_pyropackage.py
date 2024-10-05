@@ -146,24 +146,26 @@ class Additional:
         folders.extend([await cls.create_dialog_filter(title) for title in non_existing_folders_titles])
 
         client_id = (await client.get_me()).id
-        # len(База.included_peers) - len(Сегодня.included_peers)
-        # return raw.core.List([await client.resolve_peer(client_id)]), raw.core.List([])
         grouped_folders = cls._group_folders(folders)
         for category, category_folders in grouped_folders.items():
-            print(f'Папка - {category}\nСодержимое - {category_folders}')
+            # print(f'Папка - {category}\nСодержимое - {category_folders}')
             total_folder, today_folder = category_folders
-            print(f'База - {total_folder}\n\nСегодня - {today_folder}\n\n')
+            # print(f'База - {total_folder}\n\nСегодня - {today_folder}\n\n')
 
             today_folder: DialogFilter
             total_folder: DialogFilter
             general_set_today = today_folder.pinned_peers + today_folder.include_peers
             general_set_total = total_folder.pinned_peers + total_folder.include_peers
-            old_users_to_delete = await db.get_old_users(len(general_set_today), set(cls.extract_ids_from_peers(general_set_total)))
+
+            free_places_total_count = 200 - len(general_set_total)
+            if len(general_set_today) > free_places_total_count:
+                users_to_del_count = len(general_set_today) - free_places_total_count
+            else:
+                users_to_del_count = 0
+            old_users_to_delete = await db.get_old_users(users_to_del_count, cls.extract_ids_from_peers(general_set_total))
             
-            users = (set(cls.extract_ids_from_peers(general_set_total)) | set(cls.extract_ids_from_peers(general_set_today))) - set(old_users_to_delete)
+            users = (cls.extract_ids_from_peers(general_set_total) | cls.extract_ids_from_peers(general_set_today)) - set(old_users_to_delete)
             total_folder.include_peers = raw.core.List([await client.resolve_peer(user) for user in users])
-            # TODO Here we count via len(today_folder) for SQL limit and getting total_folder.include_peers for SQL "where users.id in ..."
-            # TODO Next we change included_peers of total_folder
 
             # **** Dont touch next
             # In the end we clear Today directory
@@ -175,8 +177,8 @@ class Additional:
             await client.invoke(raw.functions.messages.UpdateDialogFilter(id=total_folder.id, filter=total_folder))
 
     @classmethod
-    def extract_ids_from_peers(cls, peers: list[InputPeer]) -> list[int]:
-        return [peer.user_id for peer in peers if isinstance(peer, InputPeerUser)]
+    def extract_ids_from_peers(cls, peers: list[InputPeer]) -> set[int]:
+        return set(peer.user_id for peer in peers if isinstance(peer, InputPeerUser))
 
     @classmethod
     async def get_existing_chats(cls):

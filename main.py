@@ -11,6 +11,7 @@ from src.models import db
 from src.utils import Additional, get_date_by_weekday
 from src.services import GoogleDP
 
+
 google_dp = GoogleDP()
 
 
@@ -106,7 +107,7 @@ async def check_our_messages(_, message: types.Message):
 
 @client.on_message(group=2)
 async def got_message(_: Client, message: types.Message):
-    if hasattr(message, 'from_user'):
+    if getattr(message, 'from_user'):
         logger.debug(f'Second handler got message by [{message.from_user.id}]')
 
 
@@ -151,9 +152,6 @@ def on_shutdown():
 
 
 if __name__ == '__main__':
-    # logging.basicConfig()
-    # logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
-
     try:
         client.run(main())
     finally:
