@@ -8,7 +8,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from src.config import client
 from src.models import db
-from src.utils import Additional, get_date_by_weekday
+from src.utils import Additional, get_date_by_weekday, extract_card_from_command
 from src.services import GoogleDP
 
 
@@ -50,17 +50,11 @@ async def managers(_: Client, message: types.Message):
 
 @client.on_message(filters.chat('me') & filters.command('black'))
 async def black_card(_, message: types.Message):
-    if len(message.command) < 2:
-        await message.reply('Ошибка: Пожалуйста, укажите номер карты💳.')
+    card = await extract_card_from_command(message)
+    if card is None:
         return
 
-    card = message.command[1] if len(message.command) == 2 else ' '.join(message.command[1:])
     count = 0
-
-    if not card.replace(' ', '').isdigit() or 16 < len(card) > 19:
-        await message.reply("Ошибка: карта должна содержать только 16 цифр.")
-        return
-
     await db.update_cards_status(int(card.replace(' ', '')), status='black')
     await google_dp.insert_card_google_sheet(int(card.replace(' ', '')), status='black')
 
@@ -77,14 +71,8 @@ async def black_card(_, message: types.Message):
 
 @client.on_message(filters.chat('me') & filters.command('white'))
 async def white_card(_, message: types.Message):
-    if len(message.command) < 2:
-        await message.reply('Ошибка: Пожалуйста, укажите номер карты💳.')
-        return
-
-    card = message.command[1] if len(message.command) == 2 else ' '.join(message.command[1:])
-
-    if not card.replace(' ', '').isdigit() or 16 < len(card) > 19:
-        await message.reply("Ошибка: карта должна содержать только 16 цифр.")
+    card = await extract_card_from_command(message)
+    if card is None:
         return
 
     await db.update_cards_status(int(card.replace(' ', '')), status='white')
@@ -92,17 +80,16 @@ async def white_card(_, message: types.Message):
     await client.send_message(message.chat.id, f'✅ Карта удалена из черного списка - {card}')
 
 
-@client.on_message(filters.me)
+@client.on_message(filters.me & (filters.text | filters.caption))
 async def check_our_messages(_, message: types.Message):
     text = message.text if message.text else message.caption
-    if text:
-        search_result = re.search(r'\d{16}', text.replace(' ', ''))
-        if search_result:
-            card = search_result.group()
-            if not await db.check_card_status(int(card)):
-                await client.send_message('me', f'Ваше сообщение было удалено, т.к карта заблокирована\n\n{message.text}')
-                await message.delete()
-                logger.info(f'Delete card - {card}')
+    search_result = re.search(r'\d{16}', text.replace(' ', ''))
+    if search_result:
+        card = search_result.group()
+        if not await db.check_card_status(int(card)):
+            await client.send_message('me', f'Ваше сообщение было удалено, т.к карта заблокирована\n\n{message.text}')
+            await message.delete()
+            logger.info(f'Delete card - {card}')
 
 
 @client.on_message(filters.private & ~filters.me & ~filters.bot)
