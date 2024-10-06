@@ -32,6 +32,7 @@ class GoogleDP:
 
     @classmethod
     async def insert_cards_db(cls):
+        logger.info("ScheduledGoogleDP: Started function <insert_cards_db>")
         agc = await agcm.authorize()
         google_sheet = await agc.open_by_key(cls.cards_sheet_id)
         worksheet = await google_sheet.get_worksheet(0)
@@ -42,8 +43,11 @@ class GoogleDP:
             card = int(row[0])
             status = row[1]
             cards[card] = status
+        logger.info("ScheduledGoogleDP: Finished parsing cards from google sheet")
         if cards:
+            logger.info("ScheduledGoogleDP: Started inserting cards to database")
             await db.insert_cards(cards=cards)
+        logger.info("ScheduledGoogleDP: Finished function <insert_cards_db>")
 
     @classmethod
     async def insert_card_google_sheet(cls, card: int, status: str):
