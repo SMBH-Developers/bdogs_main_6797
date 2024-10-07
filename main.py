@@ -9,10 +9,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from src.config import client
 from src.models import db
 from src.utils import Additional, get_date_by_weekday, extract_card_from_command
-# from src.services import GoogleDP
+from src.services import GoogleDP
 
 
-# google_dp = GoogleDP()
+google_dp = GoogleDP()
 
 
 @client.on_message(filters.command('get_statistic') & filters.me)
@@ -50,7 +50,6 @@ async def managers(_: Client, message: types.Message):
 
 @client.on_message(filters.chat('me') & filters.command('black'))
 async def black_card(_, message: types.Message):
-    return  # TODO: del
     card = await extract_card_from_command(message)
     if card is None:
         return
@@ -72,7 +71,6 @@ async def black_card(_, message: types.Message):
 
 @client.on_message(filters.chat('me') & filters.command('white'))
 async def white_card(_, message: types.Message):
-    return  # TODO: del
     card = await extract_card_from_command(message)
     if card is None:
         return
@@ -118,9 +116,8 @@ async def send_folders_statistic():
 
 async def main():
     await client.start()
-    managers_today = await db.get_managers_today()
-    print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
-
+    # managers_today = await db.get_managers_today()
+    # print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
     scheduler.add_job(trigger='cron', hour='23', minute='56', func=send_folders_statistic)
     scheduler.add_job(trigger='cron', hour='00', minute='00', func=Additional.dispatch_users_via_daily_folders)
