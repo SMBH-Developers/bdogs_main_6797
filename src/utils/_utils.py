@@ -1,9 +1,17 @@
+import asyncio
+from typing import List, Sequence
 from datetime import datetime, timedelta
 
-from pyrogram import types
+from pyrogram import types, errors
+from loguru import logger
+from sqlalchemy import Row
+
+from src.funnel import FunnelConfig
+from src.models.db import FunnelUser
+from src.funnel.types import MyGeneratedMessage
 
 
-__all__ = ["get_date_by_weekday", "extract_card_from_command"]
+__all__ = ["get_date_by_weekday", "extract_card_from_command", "gather_tasks_buffer", "filter_users"]
 
 
 def get_date_by_weekday(day: str):
@@ -31,3 +39,56 @@ async def extract_card_from_command(message: types.Message) -> str | None:
         return
 
     return card
+
+
+# Работа с сообщениями
+async def gather_tasks_buffer(tasks: List[asyncio.Task], *, ignore_length: bool = False):
+    if len(tasks) >= 20 or ignore_length:
+        await _gather_tasks(tasks)
+        tasks.clear()
+
+
+async def _gather_tasks(tasks: List):
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    exceptions = [ex for ex in results if isinstance(ex, Exception)]
+    if len(exceptions) > 0:
+        print(f'{len(exceptions)=}')
+    try:
+        with logger.catch(level="DEBUG"):
+            for exception in exceptions:
+                if not isinstance(exception, (errors.PeerIdInvalid, errors.InputUserDeactivated)):
+                    raise exception
+    except:
+        pass
+
+
+async def _get_user_funnel_message(id_: int, day: str, step: str | int) -> MyGeneratedMessage | None:
+    if day in FunnelConfig.config.diff_days_to_func:
+        messages = (await FunnelConfig().get_message(id_, day))[int(step):]
+        if messages:
+            return messages[0]
+
+
+async def should_get_message(user: Row[int, datetime, str, datetime, datetime | None, str]):
+    day, step = user.step.split('-')
+    message = await _get_user_funnel_message(user.id, day, int(step))
+    if message is None:
+        # logger.error(f'SYSTEM | [{user.id}] Empty list of messages. step: {day}-{step}')
+        return True  # TODO normal
+    return await message.filter(user.id, day, step,
+                                funnel_timestamp=user.funnel_timestamp,
+                                bot_reply=user.last_message_at_bot, user_reply=user.last_message_at_user)
+
+
+async def filter_users(users: Sequence[FunnelUser]) -> Sequence[FunnelUser]:
+    """
+    Filter users by funnel skip days and time
+    :param users: [id, registration_date, step (e.g. 0-0), funnel]
+    """
+    users = [user for user in users if (
+        (datetime.now() - user.funnel_timestamp).total_seconds() > (int(user.step.split('-')[0]) * 24 * 60 * 60)
+    )]
+
+    users = [user for user in users if await should_get_message(user)]
+
+    return users

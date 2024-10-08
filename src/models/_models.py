@@ -1,6 +1,7 @@
-from datetime import date, datetime
+from typing import Literal
+from datetime import date, datetime, timedelta
 
-from sqlalchemy import BIGINT, TIMESTAMP, DATE, func, String
+from sqlalchemy import BIGINT, TIMESTAMP, DATE, func, String, Interval, text
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
 
@@ -15,6 +16,17 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
     registration_date: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
+    status: Mapped[Literal['alive', 'blocked']] = mapped_column(String(32), server_default='alive')
+
+    folder: Mapped[str] = mapped_column(String(32))
+
+    step: Mapped[str] = mapped_column(String(32), server_default='0-0')
+    funnel: Mapped[str] = mapped_column(String(64), server_default='default_funnel')
+
+    last_message_at_user: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
+    last_message_at_bot: Mapped[datetime | None] = mapped_column(TIMESTAMP)
+
+    being_late: Mapped[timedelta] = mapped_column(Interval, server_default=text("INTERVAL '0 second'"))
 
 
 class Shift(Base):
