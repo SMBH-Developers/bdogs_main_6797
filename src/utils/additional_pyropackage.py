@@ -164,7 +164,7 @@ class Additional:
                 users_to_del_count = 0
             old_users_to_delete = await db.get_old_users(users_to_del_count, cls.extract_ids_from_peers(general_set_total))
             
-            users = (cls.extract_ids_from_peers(general_set_total) | cls.extract_ids_from_peers(general_set_today)) - set(old_users_to_delete)
+            users = (cls.extract_ids_from_peers(general_set_total) | cls.extract_ids_from_peers(general_set_today)) - set(old_users_to_delete) - {5493547563}
             total_folder.include_peers = raw.core.List([await client.resolve_peer(user) for user in users])
 
             # **** Dont touch next
