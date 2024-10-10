@@ -1,4 +1,4 @@
-# import asyncio
+import asyncio
 import re
 from datetime import datetime, timedelta
 
@@ -104,6 +104,13 @@ async def registration_user(_: Client, message: types.Message):
             print(f"Папка - {folder.title} Размер - {len(folder.include_peers)}")
         folder = min(folders, key=lambda folder_x: len(folder_x.include_peers))
         await Additional.add_user_to_folder(folder.title, message.from_user.id)
+        if folder.title[-3:].replace(' ', '') == 'Ве':
+            await asyncio.sleep(80)
+            await client.send_message(message.from_user.id, text='Здравствуйте! Меня зовут Раяна! ☀️')
+            await asyncio.sleep(30)
+            text = 'Я профессионально занимаюсь диагностикой и чисткой энергетических центров (чакр) и помогаю людям гармонизировать все сферы их жизни с помощью индивидуальных практик уже более 14 лет! 😊\n\nВ своей работе я использую методы энергетической диагностики чакр, а также являюсь экспертом по анализу и коррекции энергетических потоков человека.\n\n📌 Вы можете лучше познакомиться со мной в моем Instagram:\n╚ instagram.com/rayana.soul\n\n🔗 Узнать больше информации обо мне и моих услугах на сайте:\n╚ taplink.cc/rayana_soul\n\n✈️ Подписаться на мой личный telegram-канал:\n╚ @rayana_channel\n\n💬 А так же посмотреть и послушать отзывы о моей работе:\n╚ t.me/+o0R99vpbnw01ZjYy'
+            await client.send_photo(message.from_user.id, photo='data/files/start.jpg', caption=text)
+            await client.send_message(message.from_user.id, text='Вы желаете пройти у меня полную диагностику чакр и получить свой персональный разбор, верно?') 
     else:
         logger.debug(f'[{message.from_user.id}] exists')
 
@@ -120,7 +127,7 @@ async def main():
     # print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
     scheduler.add_job(trigger='cron', hour='23', minute='56', func=send_folders_statistic)
-    scheduler.add_job(trigger='cron', hour='08', minute='30', func=Additional.dispatch_users_via_daily_folders)
+    scheduler.add_job(trigger='cron', hour='00', minute='00', func=Additional.dispatch_users_via_daily_folders)
     # scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
 
