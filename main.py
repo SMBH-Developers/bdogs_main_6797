@@ -25,7 +25,7 @@ async def statistic(_: Client, message: types.Message):
 @client.on_message(filters.command('managers') & filters.me)
 async def managers(_: Client, message: types.Message):
     weekdays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
-    available_managers = set(['Ек', 'Ди', 'Су', 'Ек2', 'Ка', 'Ан', 'Эл', 'Та', 'Ве'])
+    available_managers = set(['Ек', 'Ди', 'Су', 'Ек2', 'Ка', 'Ан', 'Эл', 'Та', 'Ве', 'Стас'])
 
     managers_shifts = {}
     text = message.text
