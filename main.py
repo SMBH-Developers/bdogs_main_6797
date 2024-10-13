@@ -25,10 +25,25 @@ async def statistic(_: Client, message: types.Message):
     await client.send_message('me', text=stat)
 
 
+@client.on_message(filters.command('update_managers') & filters.me)
+async def add_managers_list(_: Client, message: types.Message):
+    if len(message.command) != 2:
+        return await message.reply('Ошибка: Пожалуйста, укажите две буквы новой папки\nПример: /update_managers Nn')
+
+    manager_name = message.command[1]
+
+    if len(manager_name) != 2:
+        return await message.reply(f'Ошибка: в указанном названии папки {manager_name} должно быть только две буквы')
+
+    await db.update_managers_list(manager_name)
+    await message.reply(f"✅ Папка была добавлена в список")
+
+
 @client.on_message(filters.command('managers') & filters.me)
 async def managers(_: Client, message: types.Message):
     weekdays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
-    available_managers = set(['Ек', 'Ди', 'Су', 'Ек2', 'Ка', 'Ан', 'Эл', 'Та', 'Ве', 'Стас'])
+    managers_default = await db.get_managers_list()
+    available_managers = set(managers_default)
 
     managers_shifts = {}
     text = message.text

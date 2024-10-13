@@ -1,6 +1,6 @@
 import asyncio
 from typing import List, Sequence
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 
 from pyrogram import types, errors
 from loguru import logger
@@ -19,9 +19,11 @@ def get_date_by_weekday(day: str):
             'четверг': 3, 'пятница': 4, 'суббота': 5, 'воскресенье': 6}
 
     today = datetime.now()
-
     target_weekday = days[day.lower()]
-    days_ahead = (target_weekday - today.weekday())
+    if today.weekday() == 6 and today.time() >= time(hour=16):
+        days_ahead = target_weekday + 1
+    else:
+        days_ahead = (target_weekday - today.weekday())
 
     day_date = today + timedelta(days=days_ahead)
     return day_date

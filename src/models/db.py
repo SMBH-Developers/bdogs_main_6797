@@ -155,3 +155,18 @@ async def get_bot_reply(id_: int):
     async with async_session() as session:
         bot_reply = (await session.execute(select(User.last_message_at_bot).where(User.id == id_))).scalar_one_or_none()
     return bot_reply
+
+
+async def update_managers_list(new_manager: str):
+    async with async_session() as session:
+        managers = (await session.execute(select(ManagerList.managers))).scalar_one()
+        new_managers = managers+' '+new_manager
+        await session.execute(update(ManagerList).values(mangers=new_managers))
+        await session.commit()
+
+
+async def get_managers_list() -> list[str]:
+    async with async_session() as session:
+        managers = (await session.execute(select(ManagerList.managers))).scalar_one()
+    return managers.split(' ')
+
