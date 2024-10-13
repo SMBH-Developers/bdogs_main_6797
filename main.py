@@ -9,7 +9,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from src.config import client
 from src.models import db
-from src.funnel import FunnelsDP
 from src import utils
 from src.utils import Additional, get_date_by_weekday, extract_card_from_command
 from src.services import GoogleDP
@@ -112,7 +111,6 @@ async def check_our_messages(_, message: types.Message):
 
 @client.on_message(filters.private & ~filters.me & ~filters.bot)
 async def registration_user(_: Client, message: types.Message):
-    await db.update_last_message_at_user(message.from_user.id)
     logger.debug(f'[{message.from_user.id}] sent message')
     if not await db.check_user_exists(message.from_user.id):
         await db.registrate_user(message.from_user.id)
@@ -139,29 +137,6 @@ async def send_folders_statistic():
     categories_folders_stat = await Additional.get_folders_statistic()
     stat = '\n\n'.join([category_folders.to_text() for category_folders in categories_folders_stat])
     await client.send_message('me', text=stat)
-
-
-async def sending_to_users():
-    """Отправка сообщений пользователям"""
-    tasks: List[Task] = []
-
-    while True:
-        try:
-            print('i work')
-            users = await db.get_users_by_status()
-            users = await utils.filter_users(users)  # # IT'S NOT LIST OF INTEGERS (IDS)
-
-            for user in users:
-                await asyncio.sleep(0.1)
-                tasks.append(asyncio.create_task(FunnelsDP.to_funnel(user.id)))
-                await utils.gather_tasks_buffer(tasks)
-
-            await utils.gather_tasks_buffer(tasks, ignore_length=True)
-        except:
-            logger.opt(exception=True).error("Crash inside main while True <sending_to_users>")
-        finally:
-            print('Жду 15 секунд...')
-            await asyncio.sleep(15)
 
 
 async def main():

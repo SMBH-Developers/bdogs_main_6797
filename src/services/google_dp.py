@@ -1,6 +1,5 @@
 import gspread_asyncio
 from google.oauth2.service_account import Credentials
-from sqlalchemy.dialects.postgresql import insert
 
 from loguru import logger
 
