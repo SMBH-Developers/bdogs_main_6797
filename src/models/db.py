@@ -86,11 +86,12 @@ async def update_managers_list(new_manager: str):
     async with async_session() as session:
         managers = (await session.execute(select(ManagerList.managers))).scalar_one()
         new_managers = managers+' '+new_manager
-        await session.execute(update(ManagerList).values(mangers=new_managers))
+        await session.execute(update(ManagerList).values(managers=new_managers))
         await session.commit()
 
 
 async def get_managers_list() -> list[str]:
     async with async_session() as session:
         managers = (await session.execute(select(ManagerList.managers))).scalar_one()
+    print(managers.split(' '))
     return managers.split(' ')
