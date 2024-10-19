@@ -31,6 +31,12 @@ async def set_folder(id_: int, folder: str):
     logger.success(f'[id_] Update folder - {folder}')
 
 
+async def check_folder(id_: int) -> str | None:
+    async with async_session() as session:
+        folder = (await session.execute(select(User.folder).where(User.id == id_))).scalar_one_or_none()
+    return folder
+
+
 async def get_managers_today() -> str | None:
     today = datetime.now().date()
     async with async_session() as session:

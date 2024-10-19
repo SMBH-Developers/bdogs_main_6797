@@ -16,6 +16,8 @@ class User(Base):
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
     registration_date: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
 
+    folder: Mapped[str | None] = mapped_column(String(16))
+
 
 class Shift(Base):
     __tablename__ = 'shifts'
