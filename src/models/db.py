@@ -1,6 +1,6 @@
 from datetime import datetime, date
 
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, func
 from sqlalchemy.dialects.postgresql import insert
 
 from loguru import logger
@@ -35,6 +35,12 @@ async def check_folder(id_: int) -> str | None:
     async with async_session() as session:
         folder = (await session.execute(select(User.folder).where(User.id == id_))).scalar_one_or_none()
     return folder
+
+
+async def get_count_without_folder() -> int:
+    async with async_session() as session:
+        count = (await session.execute(select(func.count('*')).select_from(User).where(User.folder.isnot(None)))).scalar_one()
+    return count
 
 
 async def get_managers_today() -> str | None:
