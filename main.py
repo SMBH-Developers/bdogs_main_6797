@@ -37,7 +37,8 @@ async def get_name(user_id: int) -> str | bool:
 async def statistic(_: Client, message: types.Message):
     categories_folders_stat = await Additional.get_folders_statistic()
     stat = '\n\n'.join([category_folders.to_text() for category_folders in categories_folders_stat])
-    await client.send_message('me', text=stat)
+    users_without_folder = await db.get_count_without_folder()
+    await client.send_message('me', text=stat+f'\n\nПользователей без папки: {users_without_folder}')
 
 
 @client.on_message(filters.command('update_managers') & filters.me)

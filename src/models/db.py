@@ -28,7 +28,7 @@ async def set_folder(id_: int, folder: str):
     async with async_session() as session:
         await session.execute(update(User).values(folder=folder).where(User.id == id_))
         await session.commit()
-    logger.success(f'[id_] Update folder - {folder}')
+    logger.success(f'[{id_}] Update folder - {folder}')
 
 
 async def check_folder(id_: int) -> str | None:
@@ -39,7 +39,7 @@ async def check_folder(id_: int) -> str | None:
 
 async def get_count_without_folder() -> int:
     async with async_session() as session:
-        count = (await session.execute(select(func.count('*')).select_from(User).where(User.folder.isnot(None)))).scalar_one()
+        count = (await session.execute(select(func.count('*')).select_from(User).where(User.folder.is_(None), User.registration_date >= datetime.now().replace(hour=0, minute=0)))).scalar_one()
     return count
 
 
