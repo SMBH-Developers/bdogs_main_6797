@@ -33,6 +33,17 @@ async def get_name(user_id: int) -> str | bool:
     return name
 
 
+async def send_text_with_name(id_: int):
+    name = await get_name(id_)
+    await asyncio.sleep(80)
+    await client.send_message(id_, text=f'Здравствуйте, {name}! Меня зовут Раяна! ☀️' if name else 'Здравствуйте! Меня зовут Раяна! ☀️')
+    await asyncio.sleep(30)
+    text = 'Я профессионально занимаюсь диагностикой и чисткой энергетических центров (чакр) и помогаю людям гармонизировать все сферы их жизни с помощью индивидуальных практик уже более 14 лет! 😊\n\nВ своей работе я использую методы энергетической диагностики чакр, а также являюсь экспертом по анализу и коррекции энергетических потоков человека.\n\n📌 Вы можете лучше познакомиться со мной в моем Instagram:\n╚ instagram.com/rayana.soul\n\n🔗 Узнать больше информации обо мне и моих услугах на сайте:\n╚ taplink.cc/rayana_soul\n\n✈️ Подписаться на мой личный telegram-канал:\n╚ @rayana_channel\n\n💬 А так же посмотреть и послушать отзывы о моей работе:\n╚ t.me/+o0R99vpbnw01ZjYy'
+    await client.send_photo(id_, photo='data/files/start.jpg', caption=text)
+    await client.send_message(id_, text=f'{name + ", Вы" if name else "Вы"} желаете пройти у меня полную диагностику чакр и получить свой персональный разбор, верно?')
+    await db.set_send_message(id_)
+
+
 @client.on_message(filters.command('get_statistic') & filters.me)
 async def statistic(_: Client, message: types.Message):
     categories_folders_stat = await Additional.get_folders_statistic()
@@ -131,14 +142,8 @@ async def registration_user(_: Client, message: types.Message):
     logger.debug(f'[{message.from_user.id}] sent message')
     if not await db.check_user_exists(message.from_user.id):
         await db.registrate_user(message.from_user.id)
-        name = await get_name(message.from_user.id)
-        await asyncio.sleep(80)
-        await client.send_message(message.from_user.id, text=f'Здравствуйте, {name}! Меня зовут Раяна! ☀️' if name else 'Здравствуйте! Меня зовут Раяна! ☀️')
-        await asyncio.sleep(30)
-        text = 'Я профессионально занимаюсь диагностикой и чисткой энергетических центров (чакр) и помогаю людям гармонизировать все сферы их жизни с помощью индивидуальных практик уже более 14 лет! 😊\n\nВ своей работе я использую методы энергетической диагностики чакр, а также являюсь экспертом по анализу и коррекции энергетических потоков человека.\n\n📌 Вы можете лучше познакомиться со мной в моем Instagram:\n╚ instagram.com/rayana.soul\n\n🔗 Узнать больше информации обо мне и моих услугах на сайте:\n╚ taplink.cc/rayana_soul\n\n✈️ Подписаться на мой личный telegram-канал:\n╚ @rayana_channel\n\n💬 А так же посмотреть и послушать отзывы о моей работе:\n╚ t.me/+o0R99vpbnw01ZjYy'
-        await client.send_photo(message.from_user.id, photo='data/files/start.jpg', caption=text)
-        await client.send_message(message.from_user.id, text=f'{name + ", Вы" if name else "Вы"} желаете пройти у меня полную диагностику чакр и получить свой персональный разбор, верно?') 
-    elif not await db.check_folder(message.from_user.id):
+        asyncio.get_event_loop().create_task(send_text_with_name(message.from_user.id))
+    elif not await db.check_folder(message.from_user.id) and not await db.get_message(message.from_user.id):
         folders = await Additional.get_today_folders()
         managers_today = await db.get_managers_today()
         managers_default = ' '.join(await db.get_managers_list())

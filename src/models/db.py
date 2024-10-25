@@ -24,6 +24,19 @@ async def check_user_exists(id_: int) -> bool:
     return True
 
 
+async def set_send_message(id_: int):
+    async with async_session() as session:
+        await session.execute(update(User).values(get_message=True).where(User.id == id_))
+        await session.commit()
+    logger.success(f'[{id_}] Update get message on True')
+
+
+async def get_message(id_: int) -> bool:
+    async with async_session() as session:
+        message = (await session.execute(select(User.get_message).where(User.id == id_))).one_or_none()
+    return message
+
+
 async def set_folder(id_: int, folder: str):
     async with async_session() as session:
         await session.execute(update(User).values(folder=folder).where(User.id == id_))

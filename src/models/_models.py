@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import BIGINT, TIMESTAMP, DATE, func, String
+from sqlalchemy import BIGINT, TIMESTAMP, DATE, func, String, text
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
 
@@ -16,6 +16,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(BIGINT, primary_key=True)
     registration_date: Mapped[datetime] = mapped_column(TIMESTAMP, server_default=func.now())
 
+    get_message: Mapped[bool] = mapped_column(server_default=text('false'))
     folder: Mapped[str | None] = mapped_column(String(16))
 
 
