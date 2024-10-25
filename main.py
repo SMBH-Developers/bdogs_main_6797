@@ -11,9 +11,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from src.config import client
 from src.models import db
 from src import utils
-from src.utils import Additional, get_date_by_weekday, extract_card_from_command
+from src.utils import Additional, get_date_by_weekday, extract_card_from_command, get_folder_stats_today
 from src.services import GoogleDP
-from update_users import update_users
 
 google_dp = GoogleDP()
 
@@ -50,6 +49,12 @@ async def statistic(_: Client, message: types.Message):
     stat = '\n\n'.join([category_folders.to_text() for category_folders in categories_folders_stat])
     users_without_folder = await db.get_count_without_folder()
     await client.send_message('me', text=stat+f'\n\nПользователей без папки: {users_without_folder}')
+
+
+@client.on_message(filters.command('get_statistic_new') & filters.me)
+async def statistic_new(_: Client, message: types.Message):
+    message = await get_folder_stats_today()
+    await client.send_message('me', text=message)
 
 
 @client.on_message(filters.command('update_managers') & filters.me)
@@ -164,6 +169,11 @@ async def send_folders_statistic():
     await client.send_message('me', text=stat+f'\n\nПользователей без папки: {users_without_folder}')
 
 
+async def send_folders_statistic_new():
+    message = await get_folder_stats_today()
+    await client.send_message('me', text=message)
+
+
 async def main():
     await client.start()
     asyncio.create_task(update_users())
@@ -171,6 +181,7 @@ async def main():
     # print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
     scheduler.add_job(trigger='cron', hour='23', minute='56', func=send_folders_statistic)
+    scheduler.add_job(trigger='cron', hour='23', minute='50', func=send_folders_statistic_new)
     scheduler.add_job(trigger='cron', hour='00', minute='00', func=Additional.dispatch_users_via_daily_folders)
     # scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()

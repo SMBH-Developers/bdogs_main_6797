@@ -1,5 +1,4 @@
-import asyncio
-from datetime import datetime, date
+from datetime import datetime
 from typing import Dict, List, Tuple
 
 from src.config import client
@@ -18,39 +17,40 @@ async def get_users_and_dialogs() -> Tuple[Dict[int, str], List[int]]:
     users_with_folder = await get_users()
     dialogs = [dialog async for dialog in client.get_dialogs(limit=1500)]
 
-    #users_with_folder, dialogs = await asyncio.gather(users_with_folder_task, dialogs_task)
-    #dialogs = [dialog async for dialog in dialogs]
-
     users_with_folder_dict = {user[0]: user[1] for user in users_with_folder}
 
     relevant_dialogs = []
     for dialog in dialogs:
         if dialog.chat.id in users_with_folder_dict:
             messages = client.get_chat_history(dialog.chat.id)
-            messages = [message async for message in messages]  # Преобразование в список
+            messages = [message async for message in messages]
             if messages and messages[-1].date.date() == datetime.now().date():
                 relevant_dialogs.append(dialog.chat.id)
 
     return users_with_folder_dict, relevant_dialogs
 
 
-async def update_users():
+async def get_folder_stats_today():
     users_with_folder_dict, relevant_dialogs = await get_users_and_dialogs()
     folder_counts = {"Нет папки": 0}
 
     for user_id in relevant_dialogs:
-        if user_id in users_with_folder_dict:
-            folder = users_with_folder_dict[user_id]
+        folder = users_with_folder_dict.get(user_id)
+        if folder is None:
+            folder_counts["Нет папки"] += 1
+        else:
             if folder in folder_counts:
                 folder_counts[folder] += 1
             else:
                 folder_counts[folder] = 1
-        else:
-            folder_counts["Нет папки"] += 1
 
+    result = f"Нет папки за сегодня: {folder_counts['Нет папки']}\n"
     for folder, count in folder_counts.items():
-        print(f"{folder}: {count}")
-    print(f'Всего: {len(relevant_dialogs)}')
+        if folder != "Нет папки":
+            result += f"Сегодня {folder}: {count}\n"
+    result += f"Всего за сегодня: {len(relevant_dialogs)}"
+
+    return result
 
 
 
