@@ -15,19 +15,21 @@ async def get_users():
 
 
 async def get_users_and_dialogs() -> Tuple[Dict[int, str], List[int]]:
-    users_with_folder_task = asyncio.create_task(get_users())
-    dialogs_task = asyncio.create_task(client.get_dialogs(limit=1500))
+    users_with_folder = await get_users()
+    dialogs = [dialog async for dialog in client.get_dialogs(limit=1500)]
 
-    users_with_folder, dialogs = await asyncio.gather(users_with_folder_task, dialogs_task)
+    #users_with_folder, dialogs = await asyncio.gather(users_with_folder_task, dialogs_task)
+    #dialogs = [dialog async for dialog in dialogs]
 
     users_with_folder_dict = {user[0]: user[1] for user in users_with_folder}
 
-    relevant_dialogs = [
-        dialog.chat.id
-        for dialog in dialogs
-        if dialog.chat.id in users_with_folder_dict and
-        (await client.get_chat_history(dialog.chat.id))[-1].date.date() == datetime.now().date()
-    ]
+    relevant_dialogs = []
+    for dialog in dialogs:
+        if dialog.chat.id in users_with_folder_dict:
+            messages = client.get_chat_history(dialog.chat.id)
+            messages = [message async for message in messages]  # Преобразование в список
+            if messages and messages[-1].date.date() == datetime.now().date():
+                relevant_dialogs.append(dialog.chat.id)
 
     return users_with_folder_dict, relevant_dialogs
 
