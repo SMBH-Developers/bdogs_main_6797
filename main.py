@@ -143,7 +143,7 @@ async def registration_user(_: Client, message: types.Message):
     if not await db.check_user_exists(message.from_user.id):
         await db.registrate_user(message.from_user.id)
         asyncio.get_event_loop().create_task(send_text_with_name(message.from_user.id))
-    elif not await db.check_folder(message.from_user.id) and not await db.get_message(message.from_user.id):
+    elif not await db.check_folder(message.from_user.id) and await db.get_message(message.from_user.id):
         folders = await Additional.get_today_folders()
         managers_today = await db.get_managers_today()
         managers_default = ' '.join(await db.get_managers_list())
