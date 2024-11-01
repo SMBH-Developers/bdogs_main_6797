@@ -44,14 +44,18 @@ async def get_folder_stats_today():
             else:
                 folder_counts[folder] = 1
 
-    result = f"Нет папки за сегодня: {folder_counts['Нет папки']}\n"
-    for folder, count in folder_counts.items():
-        if folder != "Нет папки":
-            result += f"Сегодня {folder}: {count}\n"
-    result += f"Всего за сегодня: {len(relevant_dialogs)}"
+    # Формирование результата
+    result = ""
+    result += "Сегодня Су: {}\n".format(folder_counts.get("Су", 0))
+    result += "Сегодня Ек2: {}\n".format(folder_counts.get("Ек2", 0))
+    result += "Сегодня Ан: {}\n".format(folder_counts.get("Ан", 0))
+    result += "Сегодня Та: {}\n".format(folder_counts.get("Та", 0))
+    result += "Сегодня Ве: {}\n\n".format(folder_counts.get("Ве", 0))
+
+    total_in_folders = sum(folder_counts.values()) - folder_counts["Нет папки"]
+    result += "Всего в папках: {}\n\n".format(total_in_folders)
+
+    result += "Пользователей без папки: {}\n\n".format(folder_counts["Нет папки"])
+    result += "Всего за сегодня: {}".format(len(relevant_dialogs))
 
     return result
-
-
-
-

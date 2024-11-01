@@ -34,7 +34,8 @@ async def set_send_message(id_: int):
 async def get_message(id_: int) -> bool:
     async with async_session() as session:
         message = (await session.execute(select(User.get_message).where(User.id == id_))).one_or_none()
-    return message
+    print(message)
+    return message[0]
 
 
 async def set_folder(id_: int, folder: str):

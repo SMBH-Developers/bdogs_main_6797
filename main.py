@@ -14,6 +14,8 @@ from src import utils
 from src.utils import Additional, get_date_by_weekday, extract_card_from_command, get_folder_stats_today
 from src.services import GoogleDP
 
+from add_users import parse_users
+
 google_dp = GoogleDP()
 
 
@@ -53,6 +55,7 @@ async def statistic(_: Client, message: types.Message):
 
 @client.on_message(filters.command('get_statistic_new') & filters.me)
 async def statistic_new(_: Client, message: types.Message):
+    await client.send_message('me', text='Начинаю собирать информацию по папкам сегодня...')
     message = await get_folder_stats_today()
     await client.send_message('me', text=message)
 
@@ -176,13 +179,13 @@ async def send_folders_statistic_new():
 
 async def main():
     await client.start()
-    asyncio.create_task(update_users())
     # managers_today = await db.get_managers_today()
     # print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
+    # asyncio.create_task(parse_users())
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
     scheduler.add_job(trigger='cron', hour='23', minute='56', func=send_folders_statistic)
     scheduler.add_job(trigger='cron', hour='23', minute='50', func=send_folders_statistic_new)
-    scheduler.add_job(trigger='cron', hour='00', minute='00', func=Additional.dispatch_users_via_daily_folders)
+    scheduler.add_job(trigger='cron', hour='11', minute='57', func=Additional.dispatch_users_via_daily_folders)
     # scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
 
