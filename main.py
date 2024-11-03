@@ -185,7 +185,7 @@ async def main():
     scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
     scheduler.add_job(trigger='cron', hour='23', minute='56', func=send_folders_statistic)
     scheduler.add_job(trigger='cron', hour='23', minute='50', func=send_folders_statistic_new)
-    scheduler.add_job(trigger='cron', hour='11', minute='57', func=Additional.dispatch_users_via_daily_folders)
+    scheduler.add_job(trigger='cron', hour='00', minute='00', func=Additional.dispatch_users_via_daily_folders)
     # scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
 
