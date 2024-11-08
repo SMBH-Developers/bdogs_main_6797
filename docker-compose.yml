@@ -1,0 +1,26 @@
+services:
+  redis:
+    image: redis:latest
+    container_name: redis_bot_app
+    restart: unless-stopped
+    # hostname: ${REDIS_HOST_NAME}
+    # environment:
+    #   - REDIS_PASSWORD=${REDIS_PASSWORD}
+    #   - REDIS_PORT=${REDIS_PORT}
+    #   - REDIS_DATABASES=${REDIS_DATABASES}
+    ports:
+      - 6380:6380
+    volumes:
+      - redis-data:/local_storage
+      - ./src/config/redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    
+
+volumes:
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: ./local_storage
+      o: bind
+  
