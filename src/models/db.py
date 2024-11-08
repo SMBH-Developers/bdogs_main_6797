@@ -1,4 +1,5 @@
 from datetime import datetime, date
+from typing import Literal, Optional
 
 from sqlalchemy import select, update, delete, func
 from sqlalchemy.dialects.postgresql import insert
@@ -121,3 +122,13 @@ async def get_managers_list() -> list[str]:
         managers = (await session.execute(select(ManagerList.managers))).scalar_one()
     print(managers.split(' '))
     return managers.split(' ')
+
+async def set_ping_step(id_: int, step: Optional[Literal['FIRST', 'SECOND', 'THIRD']]):
+    async with async_session() as session:
+        await session.execute(update(User).values(ping_step=step).where(User.id == id_))
+        await session.commit()
+
+async def get_ping_step(id_: int) -> Optional[Literal['FIRST', 'SECOND', 'THIRD']]:
+    async with async_session() as session:
+        step = (await session.execute(select(User.ping_step).where(User.id == id_))).scalar_one_or_none()
+    return step

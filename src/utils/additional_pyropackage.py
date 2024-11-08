@@ -87,7 +87,11 @@ class Additional:
         return folders
 
     @classmethod
-    async def _get_daily_folders_titles(cls):
+    async def _get_daily_folders_titles(cls) -> set[str]:
+        '''
+        Example:
+            {'Сегодня Ан', 'Сегодня Ве', 'Сегодня Ка', 'Сегодня Ек', 'Сегодня Ек2', 'Сегодня Эл', 'Сегодня Та', 'База Ан', 'База Ве', 'База Ка', 'База Ек', 'База Ек2', 'База Эл', 'База Та'}
+        '''
         managers = await db.get_managers_today()
         managers_default = await db.get_managers_list()
         folders_categories = managers.split(" ") if managers is not None else managers_default
@@ -166,7 +170,7 @@ class Additional:
                 users_to_del_count = 0
             old_users_to_delete = await db.get_old_users(users_to_del_count, cls.extract_ids_from_peers(general_set_total))
             
-            users = (cls.extract_ids_from_peers(general_set_total) | cls.extract_ids_from_peers(general_set_today)) - set(old_users_to_delete) - {5493547563} - {1708819246}
+            users = (cls.extract_ids_from_peers(general_set_total) | cls.extract_ids_from_peers(general_set_today)) - set(old_users_to_delete)
             total_folder.include_peers = raw.core.List([await client.resolve_peer(user) for user in users])
 
             # **** Dont touch next

@@ -1,5 +1,5 @@
 from datetime import date, datetime
-
+from typing import Literal
 from sqlalchemy import BIGINT, TIMESTAMP, DATE, func, String, text
 from sqlalchemy.orm import declarative_base, Mapped, mapped_column
 
@@ -18,6 +18,7 @@ class User(Base):
 
     get_message: Mapped[bool] = mapped_column(server_default=text('false'))
     folder: Mapped[str | None] = mapped_column(String(16))
+    ping_step: Mapped[Literal['FIRST', 'SECOND', 'THIRD'] | None] = mapped_column(String(16))
 
 
 class Shift(Base):

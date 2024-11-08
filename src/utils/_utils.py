@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, time
 
 from pyrogram import types
+import aiohttp
 
 
 __all__ = ["get_date_by_weekday", "extract_card_from_command"]
@@ -33,3 +34,18 @@ async def extract_card_from_command(message: types.Message) -> str | None:
         return
 
     return card
+
+
+async def get_name(user_id: int) -> str | bool:
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'http://212.86.101.9:8854/get_name/{user_id}') as response:
+                if response.status == 200:
+                    name = (await response.json())
+                else:
+                    print(f'Ошибка: Не смог получить имя {user_id}')
+                    name = False
+    except Exception as e:
+        print(f'Ошибка API - {e}')
+        return False
+    return name
