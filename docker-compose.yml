@@ -3,6 +3,7 @@ services:
     image: redis:latest
     container_name: redis_bot_app
     restart: unless-stopped
+    user: root
     # hostname: ${REDIS_HOST_NAME}
     # environment:
     #   - REDIS_PASSWORD=${REDIS_PASSWORD}
