@@ -3,6 +3,7 @@ from datetime import datetime
 from dataclasses import dataclass
 
 import pytest
+import pytest_asyncio
 from pytest_asyncio import is_async_test
 from pyrogram import Client
 from sqlalchemy import delete, insert
