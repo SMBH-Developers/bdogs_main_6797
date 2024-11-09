@@ -49,12 +49,11 @@ async def get_client():
         settings.api_id,
         settings.api_hash,
         phone_number=settings.phone_number,
-        in_memory=True
     )
-    await client.start()
     
-    yield client
-    await client.stop()
+    # Используем контекстный менеджер, который правильно управляет ресурсами
+    async with client:
+        yield client
 
 
 @pytest.fixture(scope='class')
@@ -62,13 +61,13 @@ async def user_id():
     '''Реальный ID пользователя'''
     return 7069852252
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 async def chat_id():
     '''Реальный ID чата'''
     return 1371617744
 
 
-@pytest.fixture
+@pytest.fixture(scope='class')
 async def job_time():
     '''Время выполнения задачи в минутах'''
     return 1
@@ -80,10 +79,10 @@ async def job_id(user_id):
 
     
 @pytest.fixture(scope='class')
-async def message(user_id):
+async def message(chat_id):
     """Создаем мок сообщения вместо реального"""
     return MockMessage(
-        chat=MockChat(id=user_id),
+        chat=MockChat(id=chat_id),
         id=1,
         date=datetime.now(),
         outgoing=True  # Добавляем это поле, оно нужно для проверки
@@ -100,16 +99,6 @@ async def redis_client():
     )
     yield redis_client
     await redis_client.aclose()
-
-
-@pytest.fixture
-async def db_session():
-    async with async_session() as session:
-        try:
-            yield session
-        except Exception as e:
-            await session.rollback()
-            raise e
 
 
 @pytest.fixture(scope='class')
