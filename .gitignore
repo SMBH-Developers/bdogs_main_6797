@@ -166,3 +166,6 @@ ignore_list.json
 
 !.gitkeep
 data/json/*.json
+
+*.aof.*
+*.rdb
