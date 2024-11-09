@@ -20,6 +20,13 @@ def pytest_collection_modifyitems(items):
     for async_test in pytest_asyncio_tests:
         async_test.add_marker(session_scope_markers)
 
+@pytest.fixture(scope='session')
+def event_loop():
+    """Create an instance of the default event loop for each test case."""
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    yield loop
+    loop.close()
 @dataclass
 class MockChat:
     id: int
