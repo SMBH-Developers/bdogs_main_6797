@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from dataclasses import dataclass
 
@@ -38,9 +39,10 @@ async def get_client():
         str(SESSIONS_DIR / 'test_session'),
         settings.api_id,
         settings.api_hash,
-        phone_number=settings.phone_number
+        phone_number=settings.phone_number,
+        
     )
-
+    client.loop = asyncio.get_running_loop()
     await client.start()
     yield client
     await client.stop()
