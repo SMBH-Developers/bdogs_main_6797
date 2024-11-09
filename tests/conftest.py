@@ -27,14 +27,14 @@ async def scheduler():
     scheduler.start()
     yield scheduler
     scheduler.remove_all_jobs('default')
-    await scheduler.shutdown(wait=False)
+    scheduler.shutdown(wait=False)
 
 
 @pytest.fixture(scope='session')
 async def get_client():
-    client.start()
+    await client.start()
     yield client
-    client.stop()
+    await client.stop()
 
 
 @pytest.fixture(scope='class')

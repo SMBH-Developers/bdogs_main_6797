@@ -185,11 +185,6 @@ async def main(scheduler: AsyncIOScheduler):
     await idle()
 
 
-def on_shutdown(scheduler: AsyncIOScheduler):
-    client.stop()
-    scheduler.shutdown()
-
-
 if __name__ == '__main__':
     # jobstores = {
     #     'default': RedisJobStore(
@@ -206,4 +201,5 @@ if __name__ == '__main__':
     try:
         client.run(main(scheduler=scheduler))
     finally:
-        on_shutdown(scheduler)
+        scheduler.shutdown()
+        
