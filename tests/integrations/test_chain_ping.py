@@ -2,7 +2,6 @@ import pytest
 from src.tasks.ping.ping import chain_ping, ping
 from src.tasks.ping.utill import (
     is_last_message_time,
-    is_last_message_time_read,
     send_ping
 )
 from src.models import db
@@ -15,12 +14,6 @@ class TestPing:
         assert await is_last_message_time(
             client=get_client,
             user_id=user_id,
-            message=message
-        )
-
-    async def test_is_last_message_time_read(self, get_client, message):
-        assert await is_last_message_time_read(
-            client=get_client,
             message=message
         )
 

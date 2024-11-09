@@ -37,6 +37,10 @@ async def send_text_with_name(message: types.Message, scheduler: SchedulerSingle
     #     scheduler=scheduler
     # )
 
+@client.on_message(filters.chat(settings.developers_ids) & filters.command('test-check-message-read-status'))
+async def test_chain_ping(_, message: types.Message):
+    from src.tasks.ping.utill import is_last_message_time_read
+    await is_last_message_time_read(client, message)
 
 @client.on_message(filters.command('get_statistic') & filters.me)
 async def statistic(_: Client, message: types.Message):

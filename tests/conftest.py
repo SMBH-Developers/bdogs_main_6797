@@ -8,11 +8,13 @@ from pytest_asyncio import is_async_test
 from pyrogram import Client
 from sqlalchemy import delete, insert
 import redis.asyncio as aioredis
-
+from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from src.constants import SESSIONS_DIR
 from src.models import User, async_session
 from src.config import settings
+from tests.integrations.mock import MockClient, MockChat, MockMessage
 
 
 def pytest_collection_modifyitems(items):
@@ -20,6 +22,7 @@ def pytest_collection_modifyitems(items):
     session_scope_markers = pytest.mark.asyncio(loop_scope='session')
     for async_test in pytest_asyncio_tests:
         async_test.add_marker(session_scope_markers)
+
 
 @pytest.fixture(scope='session')
 def event_loop():
@@ -31,60 +34,27 @@ def event_loop():
     
     asyncio.set_event_loop(loop)
     yield loop
-    # Не закрываем loop здесь
-
-# @pytest_asyncio.fixture(scope='session')
-# async def get_client(event_loop):
-#     client = Client(
-#         str(SESSIONS_DIR / 'test_session'),
-#         settings.api_id,
-#         settings.api_hash,
-#         phone_number=settings.phone_number,
-#     )
-#     await client.start()
-#     yield client
-#     await client.stop()
-#     # Закрываем loop только после всех тестов
-#     event_loop.close()
-
-class MockClient:
-    async def start(self):
-        pass
-    
-    async def stop(self):
-        pass
-    
-    async def get_chat_history(self, user_id, limit=1):
-        try:
-            yield MockMessage(
-                chat=MockChat(id=user_id),
-                id=1,
-                date=datetime.now(),
-                outgoing=True
-            )
-        except Exception as e:
-            logger.error(f'Error getting chat history for user {user_id}: {e}')
+    loop.close()
 
 
 @pytest.fixture(scope='session')
 async def get_client():
-    return MockClient()
-
-@dataclass
-class MockChat:
-    id: int
-
-@dataclass
-class MockMessage:
-    chat: MockChat
-    id: int
-    date: datetime
-    outgoing: bool = True
+    return MockClient(date=datetime.now())
 
 
 @pytest.fixture(scope='session')
 async def scheduler():
-    scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'})
+    jobstores = {
+        'default': RedisJobStore(
+            jobs_key='dispatched_trips_jobs',
+            run_times_key='dispatched_trips_running',
+            host=settings.REDIS_HOST_NAME,
+            db=settings.REDIS_JOB_DATABASES,
+            port=settings.REDIS_PORT,
+            password=settings.REDIS_PASSWORD
+            )
+        }
+    scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'}, jobstores=jobstores)
     scheduler.start()
     yield scheduler
     scheduler.remove_all_jobs('default')
@@ -94,12 +64,12 @@ async def scheduler():
 @pytest.fixture(scope='class')
 async def user_id():
     '''Реальный ID пользователя'''
-    return 7069852252
+    return 1371617744
 
 @pytest.fixture(scope='class')
 async def chat_id():
     '''Реальный ID чата'''
-    return 1371617744
+    return 7069852252
 
 
 @pytest.fixture(scope='class')
