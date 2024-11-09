@@ -3,6 +3,7 @@ from datetime import datetime
 from dataclasses import dataclass
 
 import pytest
+from pytest_asyncio import is_asyncio
 from pyrogram import Client
 from sqlalchemy import delete, insert
 import redis.asyncio as aioredis
@@ -13,13 +14,11 @@ from src.models import User, async_session
 from src.config import settings
 
 
-@pytest.fixture(scope='session')
-def event_loop():
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    asyncio.set_event_loop(loop)
-    yield loop
-    loop.close()
+def pytest_collection_modifyitems(items):
+    pytest_asyncio_tests = (item for item in items if is_asyncio(item))
+    session_scope_markers = pytest.mark.asyncio(loop_scope='session')
+    for async_test in pytest_asyncio_tests:
+        async_test.add_marker(session_scope_markers)
 
 @dataclass
 class MockChat:
