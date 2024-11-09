@@ -1,6 +1,5 @@
 from loguru import logger
 from apscheduler.jobstores.base import JobLookupError
-from apscheduler.schedulers.base import SchedulerError
 
 
 def close_job(job):
@@ -23,8 +22,6 @@ def close_job(job):
                 scheduler.remove_job(job_id, 'default')
         except JobLookupError as e:
             logger.warning(f'Job {job_id} not found: {e}')
-        except SchedulerError as e:
-            logger.error(f'Scheduler error while closing job {job_id}: {e}')
         except Exception as e:
             logger.error(f'Unexpected error closing job {job_id}: {e}')
         
