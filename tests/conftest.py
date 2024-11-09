@@ -40,12 +40,12 @@ async def client():
 @pytest.fixture(scope='class')
 async def user_id():
     '''Реальный ID пользователя'''
-    return ...
+    return 7069852252
 
 @pytest.fixture
 async def chat_id():
     '''Реальный ID чата'''
-    return ...
+    return 1371617744
 
 
 @pytest.fixture
@@ -89,8 +89,12 @@ async def db_session():
 @pytest.fixture(scope='class')
 async def add_user(user_id: int):
     async with async_session() as session:
-        await session.execute(insert(User).values(id=user_id))
-        await session.commit()
+        try:
+            await session.execute(insert(User).values(id=user_id))
+            await session.commit()
+        except Exception as e:
+            await session.rollback()
+            raise e
         
         yield
         
