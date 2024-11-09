@@ -94,7 +94,6 @@ async def add_user(user_id: int):
             await session.commit()
         except Exception as e:
             await session.rollback()
-            raise e
         
         yield
         
