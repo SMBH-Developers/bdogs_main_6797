@@ -1,8 +1,10 @@
+from functools import wraps
 from loguru import logger
 from apscheduler.jobstores.base import JobLookupError
 
 
 def close_job(job):
+    @wraps(job)
     async def close_job_wrapper(*args, **kwargs):
         try:
             scheduler = kwargs['scheduler']

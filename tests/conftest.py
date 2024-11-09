@@ -2,13 +2,15 @@ from datetime import datetime
 from dataclasses import dataclass
 
 import pytest
+from pyrogram import Client
 from sqlalchemy import delete, insert
 import redis.asyncio as aioredis
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from src.config import client
+from src.constants import SESSIONS_DIR
 from src.models import User, async_session
 from src.config import settings
+
 
 @dataclass
 class MockChat:
@@ -32,6 +34,13 @@ async def scheduler():
 
 @pytest.fixture(scope='session')
 async def get_client():
+    client = Client(
+        str(SESSIONS_DIR / 'test_session'),
+        settings.api_id,
+        settings.api_hash,
+        phone_number=settings.phone_number
+    )
+
     await client.start()
     yield client
     await client.stop()
