@@ -64,14 +64,14 @@ async def chain_ping(
         and await is_last_message_time_read(client, message)
         and (ping_step := await db.get_ping_step(user_id))
     ):
-        if await send_ping(
+        if message := await send_ping(
             client,
             user_id,
             ping_step,
             name=name if (name := await get_name(user_id)) else ''
         ):
             await db.set_ping_step(user_id, PingText.get_next_step(ping_step))
-            return True
+            return message
         else:
             await db.set_ping_step(user_id, None)
             

@@ -15,6 +15,7 @@ async def is_last_message_time(client: Client, user_id: int, message: types.Mess
         
     return False
 
+
 async def is_last_message_time_read(client: Client, message: types.Message) -> Optional[bool]:
     try:
         return await check_message_read_status(client, message)
@@ -22,6 +23,7 @@ async def is_last_message_time_read(client: Client, message: types.Message) -> O
         logger.error(f'Error checking last message read status for user {message.chat.id}: {e}')
         
     return False
+
 
 async def check_message_read_status(client: Client, message: types.Message) -> Optional[bool]:
     '''Peers - это чаты или каналы'''
@@ -41,11 +43,17 @@ async def check_message_read_status(client: Client, message: types.Message) -> O
             return True
 
 
-async def send_ping(client: Client, user_id: int, ping_step: str, name: Optional[str] = None) -> bool:
+async def send_ping(
+    client: Client,
+    user_id: int,
+    ping_step: str,
+    name: Optional[str] = None
+) -> Optional[types.Message]:
     try:
         text = PingText[ping_step].value.format(name=name)
-        await client.send_message(user_id, text)
-        return True
+        message: types.Message = await client.send_message(user_id, text)
+        return message
+    
     except BaseException as e:
         logger.error(f'Error sending ping for user {user_id}: {e}')
-    return False
+    return 

@@ -14,9 +14,13 @@ class Settings(BaseSettings):
     
     # Redis
     REDIS_HOST_NAME: str = Field(default='localhost')
-    REDIS_PORT: int = Field(default=6379)
+    REDIS_PORT: int = Field(default=6380)
     REDIS_PASSWORD: str = Field(default='')
     REDIS_JOB_DATABASES: int = Field(default=0) # 0 - default, by apscheduler
+    
+    @property
+    def redis_uri(self) -> str:
+        return f'redis://{self.REDIS_HOST_NAME}:{self.REDIS_PORT}'
 
 
 settings = Settings()
