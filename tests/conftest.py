@@ -51,10 +51,10 @@ async def get_client(event_loop):
         phone_number=settings.phone_number,
         in_memory=True
     )
-    await client.start()
-    
-    yield client
-    await client.stop()
+    with event_loop.run_until_complete(client.start()):
+        yield client
+        event_loop.run_until_complete(client.stop())    
+
 
 
 @pytest.fixture(scope='class')
