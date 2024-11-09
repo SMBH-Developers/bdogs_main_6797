@@ -13,6 +13,13 @@ from src.models import User, async_session
 from src.config import settings
 
 
+@pytest.fixture(scope='session')
+def event_loop():
+    """Create an instance of the default event loop for each test case."""
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
 @dataclass
 class MockChat:
     id: int
@@ -34,18 +41,16 @@ async def scheduler():
 
 
 @pytest.fixture(scope='session')
-async def get_client():
+async def get_client(event_loop):
     client = Client(
         str(SESSIONS_DIR / 'test_session'),
         settings.api_id,
         settings.api_hash,
         phone_number=settings.phone_number,
-        
     )
-    client.loop = asyncio.get_running_loop()
-    await client.start()
-    yield client
-    await client.stop()
+    
+    async with client:
+        yield client
 
 
 @pytest.fixture(scope='class')
