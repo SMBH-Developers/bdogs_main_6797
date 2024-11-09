@@ -11,29 +11,29 @@ from src.models import db
 @pytest.mark.usefixtures('add_user')
 class TestPing:
     
-    async def test_is_last_message_time(self, client, user_id, message):
+    async def test_is_last_message_time(self, get_client, user_id, message):
         assert await is_last_message_time(
-            client=client,
+            client=get_client,
             user_id=user_id,
             message=message
         )
 
-    async def test_is_last_message_time_read(self, client, message):
+    async def test_is_last_message_time_read(self, get_client, message):
         assert await is_last_message_time_read(
-            client=client,
+            client=get_client,
             message=message
         )
 
-    async def test_send_ping(self, client, user_id, ping_step):
+    async def test_send_ping(self, get_client, user_id, ping_step):
         assert await send_ping(
-            client=client,
+            client=get_client,
             user_id=user_id,
             ping_step=ping_step
         )
         
     async def test_ping(
         self,
-        client,
+        get_client,
         user_id,
         message,
         scheduler,
@@ -42,7 +42,7 @@ class TestPing:
         redis_client,
     ):
         job_id = await ping(
-            client=client,
+            client=get_client,
             user_id=user_id,
             message=message,
             scheduler=scheduler,
@@ -58,7 +58,7 @@ class TestPing:
         
     async def test_chain_ping(
         self,
-        client,
+        get_client,
         user_id,
         message,
         scheduler,
@@ -68,7 +68,7 @@ class TestPing:
         
         assert await chain_ping(
             user_id=user_id,
-            client=client,
+            client=get_client,
             message=message,
             scheduler=scheduler,
             job_id=job_id
@@ -84,14 +84,14 @@ class TestPing:
         user_id,
         job_id,
         redis_client,
-        client,
+        get_client,
         message,
         scheduler
     ):
         await db.set_ping_step(user_id, 'THIRD')
         assert not await chain_ping(
             user_id=user_id,
-            client=client,
+            client=get_client,
             message=message,
             scheduler=scheduler,
             job_id=job_id

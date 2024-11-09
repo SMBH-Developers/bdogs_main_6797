@@ -31,7 +31,7 @@ async def scheduler():
 
 
 @pytest.fixture(scope='session')
-async def client():
+async def get_client():
     client.start()
     yield client
     client.stop()
