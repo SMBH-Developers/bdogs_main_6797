@@ -23,10 +23,29 @@ def pytest_collection_modifyitems(items):
 @pytest.fixture(scope='session')
 def event_loop():
     """Create an instance of the default event loop for each test case."""
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+    
+    asyncio.set_event_loop(loop)
     yield loop
-    loop.close()
+    # Не закрываем loop здесь
+
+@pytest_asyncio.fixture(scope='session')
+async def get_client(event_loop):
+    client = Client(
+        str(SESSIONS_DIR / 'test_session'),
+        settings.api_id,
+        settings.api_hash,
+        phone_number=settings.phone_number,
+    )
+    await client.start()
+    yield client
+    await client.stop()
+    # Закрываем loop только после всех тестов
+    event_loop.close()
+
 @dataclass
 class MockChat:
     id: int
@@ -46,20 +65,6 @@ async def scheduler():
     yield scheduler
     scheduler.remove_all_jobs('default')
     scheduler.shutdown(wait=False)
-
-
-@pytest.fixture(scope='session')
-async def get_client():
-    client = Client(
-        str(SESSIONS_DIR / 'test_session'),
-        settings.api_id,
-        settings.api_hash,
-        phone_number=settings.phone_number,
-    )
-    
-    # Используем контекстный менеджер, который правильно управляет ресурсами
-    async with client:
-        yield client
 
 
 @pytest.fixture(scope='class')
