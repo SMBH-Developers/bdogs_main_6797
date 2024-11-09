@@ -15,8 +15,9 @@ from src.config import settings
 
 @pytest.fixture(scope='session')
 def event_loop():
-    """Create an instance of the default event loop for each test case."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
+    asyncio.set_event_loop(loop)
     yield loop
     loop.close()
 
@@ -29,6 +30,7 @@ class MockMessage:
     chat: MockChat
     id: int
     date: datetime
+    outgoing: bool = True
 
 
 @pytest.fixture(scope='session')
@@ -47,10 +49,12 @@ async def get_client(event_loop):
         settings.api_id,
         settings.api_hash,
         phone_number=settings.phone_number,
+        in_memory=True
     )
+    await client.start()
     
-    async with client:
-        yield client
+    yield client
+    await client.stop()
 
 
 @pytest.fixture(scope='class')
@@ -76,8 +80,14 @@ async def job_id(user_id):
 
     
 @pytest.fixture
-async def message(chat_id):
-    return MockMessage(chat=MockChat(id=chat_id), id=1, date=datetime.now())
+async def message(user_id):
+    """Создаем мок сообщения вместо реального"""
+    return MockMessage(
+        chat=MockChat(id=user_id),
+        id=1,
+        date=datetime.now(),
+        outgoing=True  # Добавляем это поле, оно нужно для проверки
+    )
 
 
 @pytest.fixture(scope='session')
