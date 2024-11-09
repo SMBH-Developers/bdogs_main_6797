@@ -79,7 +79,7 @@ async def job_id(user_id):
     return f'ping_{user_id}'
 
     
-@pytest.fixture
+@pytest.fixture(scope='class')
 async def message(user_id):
     """Создаем мок сообщения вместо реального"""
     return MockMessage(
