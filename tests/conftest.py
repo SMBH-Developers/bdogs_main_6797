@@ -33,19 +33,42 @@ def event_loop():
     yield loop
     # Не закрываем loop здесь
 
-@pytest_asyncio.fixture(scope='session')
-async def get_client(event_loop):
-    client = Client(
-        str(SESSIONS_DIR / 'test_session'),
-        settings.api_id,
-        settings.api_hash,
-        phone_number=settings.phone_number,
-    )
-    await client.start()
-    yield client
-    await client.stop()
-    # Закрываем loop только после всех тестов
-    event_loop.close()
+# @pytest_asyncio.fixture(scope='session')
+# async def get_client(event_loop):
+#     client = Client(
+#         str(SESSIONS_DIR / 'test_session'),
+#         settings.api_id,
+#         settings.api_hash,
+#         phone_number=settings.phone_number,
+#     )
+#     await client.start()
+#     yield client
+#     await client.stop()
+#     # Закрываем loop только после всех тестов
+#     event_loop.close()
+
+class MockClient:
+    async def start(self):
+        pass
+    
+    async def stop(self):
+        pass
+    
+    async def get_chat_history(self, user_id, limit=1):
+        try:
+            yield MockMessage(
+                chat=MockChat(id=user_id),
+                id=1,
+                date=datetime.now(),
+                outgoing=True
+            )
+        except Exception as e:
+            logger.error(f'Error getting chat history for user {user_id}: {e}')
+
+
+@pytest.fixture(scope='session')
+async def get_client():
+    return MockClient()
 
 @dataclass
 class MockChat:
