@@ -1,8 +1,11 @@
-from pyrogram import Client
-from pyrogram import types, raw
 from typing import Optional
 
+from pyrogram import Client
+from pyrogram import types, raw
+from loguru import logger
+
 from .text import PingText
+
 
 async def is_last_message_time(client: Client, user_id: int, message: types.Message) -> bool:
     '''Проверяет, является ли сообщение последним отправленным'''
@@ -56,4 +59,4 @@ async def send_ping(
     
     except BaseException as e:
         logger.error(f'Error sending ping for user {user_id}: {e}')
-    return 
+    return

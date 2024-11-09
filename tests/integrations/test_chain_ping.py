@@ -5,7 +5,8 @@ from src.tasks.ping.utill import (
     is_last_message_time_read,
     send_ping
 )
-from src.models import db, User
+from src.models import db
+
 
 @pytest.mark.usefixtures('add_user')
 class TestPing:
@@ -51,8 +52,8 @@ class TestPing:
         assert job_id is not None
         assert job_id == job_id
         
-        user: User = await db.get_ping_step(user_id)
-        assert user.ping_step == 'FIRST'
+        ping_step = await db.get_ping_step(user_id)
+        assert ping_step == 'FIRST'
         assert await redis_client.get(job_id)
         
     async def test_chain_ping(
@@ -75,8 +76,8 @@ class TestPing:
         
         assert await redis_client.get(job_id) is not None
         
-        user: User = await db.get_ping_step(user_id)
-        assert user.ping_step == 'SECOND'
+        ping_step = await db.get_ping_step(user_id)
+        assert ping_step == 'SECOND'
 
     async def test_remove_job_in_close_job(
         self,
@@ -97,5 +98,5 @@ class TestPing:
         )
         assert await redis_client.get(job_id) is None
         
-        user: User = await db.get_ping_step(user_id)
-        assert user.ping_step is None
+        ping_step = await db.get_ping_step(user_id)
+        assert ping_step is None
