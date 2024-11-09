@@ -43,7 +43,7 @@ async def scheduler():
 
 
 @pytest.fixture(scope='session')
-async def get_client(event_loop):
+async def get_client():
     client = Client(
         str(SESSIONS_DIR / 'test_session'),
         settings.api_id,
@@ -51,10 +51,10 @@ async def get_client(event_loop):
         phone_number=settings.phone_number,
         in_memory=True
     )
-    with event_loop.run_until_complete(client.start()):
-        yield client
-        event_loop.run_until_complete(client.stop())    
-
+    await client.start()
+    
+    yield client
+    await client.stop()
 
 
 @pytest.fixture(scope='class')
