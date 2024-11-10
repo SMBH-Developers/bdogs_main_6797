@@ -125,9 +125,13 @@ async def get_managers_list() -> list[str]:
 
 async def set_ping_step(id_: int, step: Optional[Literal['FIRST', 'SECOND', 'THIRD']]):
     async with async_session() as session:
-        await session.execute(update(User).values(ping_step=step).where(User.id == id_))
-        await session.commit()
-
+        try:
+            await session.execute(update(User).values(ping_step=step).where(User.id == id_))
+            await session.commit()
+        except Exception as e:
+            logger.error(f'[{id_}] Error update ping step: {e}')
+            await session.rollback()
+        
 async def get_ping_step(id_: int) -> Optional[Literal['FIRST', 'SECOND', 'THIRD']]:
     async with async_session() as session:
         step = (await session.execute(select(User.ping_step).where(User.id == id_))).scalar_one_or_none()

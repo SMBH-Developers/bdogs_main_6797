@@ -7,7 +7,7 @@ from asyncio import Task
 from loguru import logger
 from pyrogram import Client, filters, types, idle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.jobstores.redis import RedisJobStore
+from src.config import scheduler
 
 from src.config import settings, client
 from src.models import db
@@ -190,18 +190,6 @@ async def main(scheduler: AsyncIOScheduler):
 
 
 if __name__ == '__main__':
-    # jobstores = {
-    #     'default': RedisJobStore(
-    #         jobs_key='dispatched_trips_jobs',
-    #         run_times_key='dispatched_trips_running',
-    #         host=settings.REDIS_HOST_NAME,
-    #         db=settings.REDIS_JOB_DATABASES,
-    #         port=settings.REDIS_PORT,
-    #         password=settings.REDIS_PASSWORD
-    #         )
-    #     }
-    scheduler = SchedulerSingleton({'apscheduler.timezone': 'Europe/Moscow'}) # , jobstores=jobstores
-    
     try:
         client.run(main(scheduler=scheduler))
     finally:

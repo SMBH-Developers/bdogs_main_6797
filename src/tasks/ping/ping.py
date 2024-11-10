@@ -28,15 +28,18 @@ async def ping(
             trigger='interval',
             run_date=datetime.now(),
             minutes=job_time,
-        func=chain_ping,
-        kwargs={
-            'user_id': user_id,
-            'client': client,
-            'message': message,
-            'scheduler': scheduler,
-            'job_id': job_id
-        },
-        id=job_id
+            func=chain_ping,
+            kwargs={
+                'user_id': user_id,
+                'client': client,
+                'message': message,
+                'scheduler': scheduler,
+                'job_id': job_id
+            },
+            id=job_id,
+            replace_existing=True,
+            misfire_grace_time=60,
+            coalesce=True
         )
         logger.info(f'Ping task for user {user_id} created')
         return job_id
@@ -52,7 +55,7 @@ async def chain_ping(
     message: types.Message,
     scheduler: SchedulerSingleton,
     job_id: str
-):
+) -> Optional[types.Message]:
     '''
     Проверяет последнее сообщение пользователя и проверяет его статус
     Если условия выполнены, то отправляет пинг
@@ -60,9 +63,9 @@ async def chain_ping(
     '''
     
     if (
-        await is_last_message_time(client, user_id, message)
+        (ping_step := await db.get_ping_step(user_id))
+        and await is_last_message_time(client, user_id, message)
         and await is_last_message_time_read(client, message)
-        and (ping_step := await db.get_ping_step(user_id))
     ):
         if message := await send_ping(
             client,
@@ -75,4 +78,4 @@ async def chain_ping(
         else:
             await db.set_ping_step(user_id, None)
             
-    return False
+    return 

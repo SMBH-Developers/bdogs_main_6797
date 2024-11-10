@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from typing import AsyncGenerator
 
 from dataclasses import dataclass
 
@@ -16,10 +16,11 @@ class MockMessage:
     id: int
     date: datetime
     outgoing: bool = True
+    text: str = ''
 
 @dataclass(frozen=True)
 class MockClient:
-    date: datetime
+    message: MockMessage
     
     async def start(self):
         pass
@@ -27,16 +28,17 @@ class MockClient:
     async def stop(self):
         pass
     
-    async def get_chat_history(self, user_id, limit=1):
+    async def get_chat_history(self, user_id, limit=1) -> AsyncGenerator[MockMessage, None]:
         try:
-            yield MockMessage(
-                chat=MockChat(id=user_id),
-                id=1,
-                date=self.date,
-                outgoing=True
-            )
+            yield self.message
         except Exception as e:
             logger.error(f'Error getting chat history for user {user_id}: {e}')
             
-    async def send_message(self, user_id, text):
-        pass
+    async def send_message(self, user_id, text) -> MockMessage:
+        self.message = MockMessage(
+            chat=MockChat(id=user_id),
+            id=self.message.id + 1,
+            date=datetime.now(),
+            text=text
+        )
+        return self.message

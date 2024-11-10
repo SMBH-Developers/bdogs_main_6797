@@ -37,9 +37,9 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(scope='session')
-async def get_client():
-    return MockClient(date=datetime.now())
+@pytest.fixture(scope='class')
+async def get_client(message):
+    return MockClient(message=message)
 
 
 @pytest.fixture(scope='session')
@@ -63,19 +63,17 @@ async def scheduler():
 
 @pytest.fixture(scope='class')
 async def user_id():
-    '''Реальный ID пользователя'''
-    return 1371617744
+    return 777777777
 
 @pytest.fixture(scope='class')
 async def chat_id():
-    '''Реальный ID чата'''
-    return 7069852252
+    return 666666666
 
 
 @pytest.fixture(scope='class')
 async def job_time():
     '''Время выполнения задачи в минутах'''
-    return 1
+    return 5
 
 @pytest.fixture(scope='class')
 async def job_id(user_id):

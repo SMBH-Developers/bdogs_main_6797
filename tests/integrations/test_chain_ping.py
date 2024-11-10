@@ -1,3 +1,4 @@
+import pickle
 import pytest
 from src.tasks.ping.ping import chain_ping, ping
 from src.tasks.ping.utill import (
@@ -5,7 +6,7 @@ from src.tasks.ping.utill import (
     send_ping
 )
 from src.models import db
-
+from src.tasks.ping.utill import PingText
 
 @pytest.mark.usefixtures('add_user')
 class TestPing:
@@ -18,33 +19,36 @@ class TestPing:
         )
 
     async def test_send_ping(self, get_client, user_id, ping_step):
-        assert await send_ping(
+        '''Изменит последнее отправленное сообщение в классе клиента'''
+        old_message_time = get_client.message.date
+        result_message = await send_ping(
             client=get_client,
             user_id=user_id,
             ping_step=ping_step
         )
+        assert result_message is not None
+        assert result_message.text == PingText[ping_step].value.format(name=None)
+        assert result_message.date > old_message_time
         
     async def test_ping(
         self,
         get_client,
         user_id,
-        message,
         scheduler,
         job_time,
         job_id,
         redis_client,
     ):
+        '''Создаст задачу в schedule'''
         job_id = await ping(
             client=get_client,
             user_id=user_id,
-            message=message,
+            message=get_client.message,
             scheduler=scheduler,
             job_time=job_time
         )
         
         assert job_id is not None
-        assert job_id == job_id
-        
         ping_step = await db.get_ping_step(user_id)
         assert ping_step == 'FIRST'
         assert await redis_client.get(job_id)
@@ -53,21 +57,25 @@ class TestPing:
         self,
         get_client,
         user_id,
-        message,
         scheduler,
         job_id,
         redis_client
     ):
-        
-        assert await chain_ping(
+        '''Изменит последнее отправленное сообщение в классе клиента так как будет вызов send_ping'''
+        result_message = await chain_ping(
             user_id=user_id,
             client=get_client,
-            message=message,
+            message=get_client.message,
             scheduler=scheduler,
             job_id=job_id
         )
+        assert result_message is not None
+        redis_job = await redis_client.get(job_id)
+        assert redis_job is not None
         
-        assert await redis_client.get(job_id) is not None
+        # так как декоратор close_job меняет kwargs message, то проверяем обновленное сообщение
+        job_state = pickle.loads(redis_job)
+        assert job_state['message'] == result_message
         
         ping_step = await db.get_ping_step(user_id)
         assert ping_step == 'SECOND'
@@ -78,14 +86,13 @@ class TestPing:
         job_id,
         redis_client,
         get_client,
-        message,
         scheduler
     ):
         await db.set_ping_step(user_id, 'THIRD')
         assert not await chain_ping(
             user_id=user_id,
             client=get_client,
-            message=message,
+            message=get_client.message,
             scheduler=scheduler,
             job_id=job_id
         )
