@@ -20,12 +20,11 @@ def close_job(job):
                     current_kwargs = current_job.kwargs
                     logger.info(f'Current kwargs: {current_kwargs}')
                     current_kwargs['message'] = job_result
-                    logger.info(f'Current kwargs after update: {current_kwargs}')
-                    
                     scheduler.modify_job(
-                        current_job,
+                        job_id,
                         kwargs=current_kwargs,
                     )
+                    logger.info(f'Current kwargs after update: {current_kwargs}')
             else:
                 scheduler.remove_job(job_id, 'default')
                 logger.info(f'Job {job_id} removed')
