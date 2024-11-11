@@ -13,18 +13,13 @@ def close_job(job):
             job_result = await job(*args, **kwargs)
             if job_result:
                 current_job = scheduler.get_job(job_id, 'default')
-                all_jobs = scheduler.get_jobs('default')
-                logger.info(f'All jobs: {all_jobs}')
-                logger.info(f'Job {current_job} found')
                 if current_job:
                     current_kwargs = current_job.kwargs
-                    logger.info(f'Current kwargs: {current_kwargs}')
                     current_kwargs['message'] = job_result
                     scheduler.modify_job(
                         job_id,
                         kwargs=current_kwargs,
                     )
-                    logger.info(f'Current kwargs after update: {current_kwargs}')
             else:
                 scheduler.remove_job(job_id, 'default')
                 logger.info(f'Job {job_id} removed')

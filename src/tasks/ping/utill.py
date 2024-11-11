@@ -53,7 +53,11 @@ async def send_ping(
     name: Optional[str] = None
 ) -> Optional[types.Message]:
     try:
-        text = PingText[ping_step].value.format(name=name)
+        text = PingText[ping_step].value
+        if not name:
+            text = text.replace('{name}, ', '')
+        else:
+            text = text.format(name=name)
         message: types.Message = await client.send_message(user_id, text)
         return message
     
