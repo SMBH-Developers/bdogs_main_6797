@@ -34,7 +34,6 @@ class TestPing:
         self,
         get_client,
         user_id,
-        scheduler,
         job_time,
         job_id,
         redis_client,
@@ -44,7 +43,6 @@ class TestPing:
             client=get_client,
             user_id=user_id,
             message=get_client.message,
-            scheduler=scheduler,
             job_time=job_time
         )
         
@@ -57,7 +55,6 @@ class TestPing:
         self,
         get_client,
         user_id,
-        scheduler,
         job_id,
         redis_client
     ):
@@ -66,7 +63,6 @@ class TestPing:
             user_id=user_id,
             client=get_client,
             message=get_client.message,
-            scheduler=scheduler,
             job_id=job_id
         )
         assert result_message is not None
@@ -86,14 +82,12 @@ class TestPing:
         job_id,
         redis_client,
         get_client,
-        scheduler
     ):
         await db.set_ping_step(user_id, 'THIRD')
         assert not await chain_ping(
             user_id=user_id,
             client=get_client,
             message=get_client.message,
-            scheduler=scheduler,
             job_id=job_id
         )
         assert await redis_client.get(job_id) is None

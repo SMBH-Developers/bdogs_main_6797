@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import Literal
 
 class Settings(BaseSettings):
+    MODE: Literal['TEST', 'PROD'] = Field(default='TEST') # TEST or PROD
     name: str
     api_id: int
     api_hash: str

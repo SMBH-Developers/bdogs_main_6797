@@ -41,7 +41,7 @@ async def get_client(message):
 
 @pytest.fixture(scope='session')
 async def scheduler():
-    scheduler = SchedulerSingleton(test_mode=True)
+    scheduler = SchedulerSingleton()
     scheduler.start()
     yield scheduler
     scheduler.remove_all_jobs('default')

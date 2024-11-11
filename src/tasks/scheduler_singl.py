@@ -18,13 +18,13 @@ class Singleton:
     
 class SchedulerSingleton(Singleton, AsyncIOScheduler):
     
-    def __init__(self, **kwargs, test_mode: bool = False):
+    def __init__(self, **kwargs):
         jobstores = {
             'default': RedisJobStore(
                 jobs_key='dispatched_trips_jobs',
                 run_times_key='dispatched_trips_running',
                 host=settings.REDIS_HOST_NAME,
-                db=settings.REDIS_JOB_DATABASES_TEST if test_mode else settings.REDIS_JOB_DATABASES,
+                db=settings.REDIS_JOB_DATABASES_TEST if settings.MODE == 'TEST' else settings.REDIS_JOB_DATABASES,
                 port=settings.REDIS_PORT,
                 password=settings.REDIS_PASSWORD
             )

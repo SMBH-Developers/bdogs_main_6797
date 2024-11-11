@@ -2,12 +2,13 @@ from functools import wraps
 from loguru import logger
 from apscheduler.jobstores.base import JobLookupError
 
+from src.tasks.scheduler_singl import SchedulerSingleton
 
 def close_job(job):
     @wraps(job)
     async def close_job_wrapper(*args, **kwargs):
         try:
-            scheduler = 
+            scheduler = SchedulerSingleton()
             job_id = kwargs['job_id']
             job_result = await job(*args, **kwargs)
             if job_result:
