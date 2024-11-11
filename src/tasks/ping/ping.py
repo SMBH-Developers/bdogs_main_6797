@@ -32,7 +32,7 @@ async def ping(
             func=chain_ping,
             kwargs={
                 'user_id': user_id,
-                'client': mock_client,
+                'mock_client': mock_client,
                 'message': message,
                 'job_id': job_id
             },
