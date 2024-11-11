@@ -41,6 +41,7 @@ class TestPing:
     ):
         '''Создаст задачу в schedule'''
         job_id = await ping(
+            mock_client=get_client,
             user_id=user_id,
             message=get_client.message,
             job_time=job_time,
@@ -62,8 +63,10 @@ class TestPing:
         '''Изменит последнее отправленное сообщение в классе клиента так как будет вызов send_ping'''
         result_message = await chain_ping(
             user_id=user_id,
+            client=get_client,
             message=get_client.message,
-            job_id=job_id
+            job_id=job_id,
+            mock_client=get_client
         )
         assert result_message is not None
         redis_job = await redis_client.hget('dispatched_trips_jobs',job_id)
@@ -87,8 +90,10 @@ class TestPing:
         await db.set_ping_step(user_id, None)
         assert not await chain_ping(
             user_id=user_id,
+            client=get_client,
             message=get_client.message,
-            job_id=job_id
+            job_id=job_id,
+            mock_client=get_client
         )
         assert await redis_client.hget('dispatched_trips_jobs',job_id) is None
         
