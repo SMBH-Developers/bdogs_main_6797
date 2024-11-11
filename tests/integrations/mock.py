@@ -22,6 +22,11 @@ class MockMessage:
 class MockDialog:
     read_outbox_max_id: int
 
+
+@dataclass
+class MockDialogs:
+    dialogs: list[MockDialog]
+
 @dataclass
 class MockClient:
     message: MockMessage
@@ -51,4 +56,4 @@ class MockClient:
         return MockChat(id=user_id).id
     
     async def invoke(self, *args, **kwargs):
-        return [MockDialog(read_outbox_max_id=self.message.id + 1)]
+        return MockDialogs(dialogs=[MockDialog(read_outbox_max_id=self.message.id + 1)])
