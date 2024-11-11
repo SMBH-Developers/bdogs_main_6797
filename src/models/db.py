@@ -135,4 +135,5 @@ async def set_ping_step(id_: int, step: Optional[Literal['FIRST', 'SECOND', 'THI
 async def get_ping_step(id_: int) -> Optional[Literal['FIRST', 'SECOND', 'THIRD']]:
     async with async_session() as session:
         step = (await session.execute(select(User.ping_step).where(User.id == id_))).scalar_one_or_none()
+        await session.commit()
     return step

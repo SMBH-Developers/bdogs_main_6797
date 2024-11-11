@@ -107,7 +107,7 @@ async def add_user(user_id: int):
         except Exception as e:
             await session.rollback()
         
-        yield
-        
+    yield
+    async with async_session() as session:
         await session.execute(delete(User).where(User.id == user_id))
         await session.commit()
