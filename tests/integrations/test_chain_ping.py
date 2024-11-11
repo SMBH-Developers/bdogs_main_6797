@@ -71,8 +71,7 @@ class TestPing:
         
         # так как декоратор close_job меняет kwargs message, то проверяем обновленное сообщение
         job_state = pickle.loads(redis_job)
-        print(job_state, 'JOB_STATE!!!!!!!!!')
-        assert job_state['message'] == result_message
+        assert job_state['kwargs']['message'] == result_message
         
         ping_step = await db.get_ping_step(user_id)
         assert ping_step == 'SECOND'
