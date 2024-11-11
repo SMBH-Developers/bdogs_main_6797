@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from dataclasses import dataclass
+from datasessiones import datasession
 
 import pytest
 import pytest_asyncio
@@ -30,7 +30,7 @@ def event_loop(request):
     loop.close()
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 async def get_client(message):
     return MockClient(message=message)
 
@@ -44,34 +44,34 @@ async def scheduler():
     scheduler.shutdown(wait=False)
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 async def user_id():
     return 777777777
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 async def chat_id():
     return 666666666
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 async def job_time():
     '''Время выполнения задачи в минутах'''
     return 5
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 async def job_id(user_id):
     '''ID задачи'''
     return f'ping_{user_id}'
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 async def ping_step():
     '''Шаг пинга'''
     return 'FIRST'
 
     
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 async def message(chat_id):
     """Создаем мок сообщения вместо реального"""
     return MockMessage(
@@ -107,7 +107,7 @@ async def redis_client(event_loop):
                 logger.error(f"Error closing Redis connection: {e}")
 
 
-@pytest.fixture(scope='class')
+@pytest.fixture(scope='session')
 async def add_user(user_id: int):
     session = None
     try:

@@ -8,7 +8,7 @@ from src.tasks.ping.utill import (
 from src.models import db
 from src.tasks.ping.utill import PingText
 
-@pytest.mark.usefixtures('add_user')
+@pytest.mark.usefixtures('add_user', 'scheduler')
 class TestPing:
     
     async def test_is_last_message_time(self, get_client, user_id, message):
@@ -36,7 +36,6 @@ class TestPing:
         user_id,
         job_time,
         job_id,
-        scheduler,
         redis_client
     ):
         '''Создаст задачу в schedule'''
@@ -57,7 +56,6 @@ class TestPing:
         get_client,
         user_id,
         job_id,
-        scheduler,
         redis_client
     ):
         '''Изменит последнее отправленное сообщение в классе клиента так как будет вызов send_ping'''
@@ -84,7 +82,7 @@ class TestPing:
         job_id,
         redis_client,
         get_client,
-        scheduler
+        
     ):
         await db.set_ping_step(user_id, 'THIRD')
         assert not await chain_ping(
