@@ -26,7 +26,6 @@ async def ping(
         job_id = f'ping_{user_id}'
         scheduler.add_job(
             trigger='interval',
-            run_date=datetime.now(),
             minutes=job_time,
             func=chain_ping,
             kwargs={
