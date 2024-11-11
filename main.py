@@ -32,12 +32,12 @@ async def send_text_with_name(message: types.Message, scheduler: SchedulerSingle
     self_message = await client.send_message(message.from_user.id, text=f'{name + ", Вы" if name else "Вы"} желаете пройти у меня полную диагностику чакр и получить свой персональный разбор, верно?')
     await db.set_send_message(message.from_user.id)
     
-    await ping(
-        client=client,
-        user_id=message.from_user.id,
-        message=self_message,
-        scheduler=scheduler
-    )
+   # await ping(
+    #    client=client,
+     #   user_id=message.from_user.id,
+      #  message=self_message,
+       # scheduler=scheduler
+    #)
 
 # @client.on_message(filters.chat(developers_ids) & filters.command('test-check-message-read-status'))
 # async def test_chain_ping(_, message: types.Message):
