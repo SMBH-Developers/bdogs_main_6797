@@ -99,14 +99,27 @@ async def redis_client():
 
 @pytest.fixture(scope='class')
 async def add_user(user_id: int):
-    async with async_session() as session:
-        try:
-            await session.execute(insert(User).values(id=user_id))
-            await session.commit()
-        except Exception as e:
+    session = None
+    try:
+        session = async_session()
+        await session.execute(insert(User).values(id=user_id))
+        await session.commit()
+    except Exception as e:
+        if session:
             await session.rollback()
+    finally:
+        if session:
+            await session.close()
         
     yield
-    async with async_session() as session:
+
+    try:
+        session = async_session()
         await session.execute(delete(User).where(User.id == user_id))
         await session.commit()
+    except Exception as e:
+        if session:
+            await session.rollback()
+    finally:
+        if session:
+            await session.close()
