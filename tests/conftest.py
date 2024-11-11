@@ -29,7 +29,7 @@ def event_loop():
         loop = policy.new_event_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
-    yield loop
+    yield loopevent_loop
     loop.close()
 
 
@@ -86,7 +86,7 @@ async def message(chat_id):
 
 
 @pytest.fixture(scope='session')
-async def redis_client():
+async def redis_client(event_loop):
     redis_client = aioredis.from_url(
         url=f'{settings.redis_uri}/{settings.REDIS_JOB_DATABASES_TEST}',
         decode_responses=True,
