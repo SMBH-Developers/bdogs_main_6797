@@ -2,7 +2,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.jobstores.redis import RedisJobStore
 from apscheduler.executors.pool import ProcessPoolExecutor
 from apscheduler.executors.asyncio import AsyncIOExecutor
-from src.tasks.scheduler_singl import SchedulerSingleton
 from src.config import settings
 
 
