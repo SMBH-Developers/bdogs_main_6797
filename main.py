@@ -7,9 +7,10 @@ from asyncio import Task
 from loguru import logger
 from pyrogram import Client, filters, types, idle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from src.config import scheduler
+
 
 from src.config import settings, client
+from src.config._settings import developers_ids
 from src.models import db
 from src.utils import Additional, get_date_by_weekday, extract_card_from_command, get_folder_stats_today, get_name
 from src.services import GoogleDP
@@ -38,7 +39,7 @@ async def send_text_with_name(message: types.Message, scheduler: SchedulerSingle
     #     scheduler=scheduler
     # )
 
-@client.on_message(filters.users(settings.developers_ids) & filters.command('test-check-message-read-status'))
+@client.on_message(filters.chat(developers_ids) & filters.command('test-check-message-read-status'))
 async def test_chain_ping(_, message: types.Message):
     result = await is_last_message_time_read(client, message)
     await message.reply(f'Result: {result}')
