@@ -17,6 +17,10 @@ class MockMessage:
     date: datetime
     outgoing: bool = True
     text: str = ''
+    
+@dataclass
+class MockDialog:
+    read_outbox_max_id: int
 
 @dataclass
 class MockClient:
@@ -42,3 +46,9 @@ class MockClient:
             text=text
         )
         return self.message
+    
+    async def resolve_peer(self, user_id):
+        return MockChat(id=user_id)
+    
+    async def invoke(self, *args, **kwargs):
+        return [MockDialog(read_outbox_max_id=self.message.id + 1)]

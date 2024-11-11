@@ -23,8 +23,6 @@ def close_job(job):
                     )
             else:
                 scheduler.remove_job(job_id, 'default')
-        except JobLookupError as e:
-            logger.warning(f'Job {job_id} not found: {e}')
         except Exception as e:
             logger.error(f'Unexpected error closing job {job_id}: {e}')
         
