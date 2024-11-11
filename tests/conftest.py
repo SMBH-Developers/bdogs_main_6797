@@ -15,21 +15,17 @@ from src.config import settings
 from tests.integrations.mock import MockClient, MockChat, MockMessage
 
 
-def pytest_collection_modifyitems(items):
-    pytest_asyncio_tests = (item for item in items if is_async_test(item))
-    session_scope_markers = pytest.mark.asyncio(loop_scope='session')
-    for async_test in pytest_asyncio_tests:
-        async_test.add_marker(session_scope_markers)
+# def pytest_collection_modifyitems(items):
+#     pytest_asyncio_tests = (item for item in items if is_async_test(item))
+#     session_scope_markers = pytest.mark.asyncio(loop_scope='session')
+#     for async_test in pytest_asyncio_tests:
+#         async_test.add_marker(session_scope_markers)
 
 
-@pytest.fixture(scope='session')
-def event_loop():
+@pytest_asyncio.fixture(scope='session', autouse=True)
+def event_loop(request):
     """Create an instance of the default event loop for each test case."""
-    try:
-        policy = asyncio.get_event_loop_policy()
-        loop = policy.new_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
+    loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
 
