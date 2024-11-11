@@ -10,10 +10,9 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .utill import is_last_message_time, is_last_message_time_read, send_ping
 from src.utils import get_name
 from src.tasks import close_job
-
+from src.config import client
 
 async def ping(
-    client: Client,
     user_id: int,
     message: types.Message,
     scheduler: AsyncIOScheduler,
@@ -30,7 +29,7 @@ async def ping(
             func=chain_ping,
             kwargs={
                 'user_id': user_id,
-                'client': client,
+                # 'client': client,
                 'message': message
             },
             id=job_id,
@@ -48,7 +47,6 @@ async def ping(
 @close_job
 async def chain_ping(
     user_id: int,
-    client: Client,
     message: types.Message,
     job_id: str
 ) -> Optional[types.Message]:
