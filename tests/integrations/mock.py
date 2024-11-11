@@ -18,7 +18,7 @@ class MockMessage:
     outgoing: bool = True
     text: str = ''
 
-@dataclass(frozen=True)
+@dataclass
 class MockClient:
     message: MockMessage
     
