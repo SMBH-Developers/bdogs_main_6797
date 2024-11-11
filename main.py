@@ -191,7 +191,7 @@ async def main(scheduler: AsyncIOScheduler):
 
 if __name__ == '__main__':
     try:
-        client.run(main(scheduler=scheduler))
+        client.run(main(scheduler=SchedulerSingleton()))
     finally:
         scheduler.shutdown()
         

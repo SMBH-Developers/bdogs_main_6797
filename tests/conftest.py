@@ -5,13 +5,10 @@ from dataclasses import dataclass
 import pytest
 import pytest_asyncio
 from pytest_asyncio import is_async_test
-from pyrogram import Client
 from sqlalchemy import delete, insert
 import redis.asyncio as aioredis
-from apscheduler.jobstores.redis import RedisJobStore
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from src.tasks.scheduler_singl import SchedulerSingleton
 
-from src.constants import SESSIONS_DIR
 from src.models import User, async_session
 from src.config import settings
 from tests.integrations.mock import MockClient, MockChat, MockMessage
@@ -44,17 +41,7 @@ async def get_client(message):
 
 @pytest.fixture(scope='session')
 async def scheduler():
-    jobstores = {
-        'default': RedisJobStore(
-            jobs_key='dispatched_trips_jobs',
-            run_times_key='dispatched_trips_running',
-            host=settings.REDIS_HOST_NAME,
-            db=settings.REDIS_JOB_DATABASES_TEST,
-            port=settings.REDIS_PORT,
-            password=settings.REDIS_PASSWORD
-            )
-        }
-    scheduler = AsyncIOScheduler({'apscheduler.timezone': 'Europe/Moscow'}, jobstores=jobstores)
+    scheduler = SchedulerSingleton(test_mode=True)
     scheduler.start()
     yield scheduler
     scheduler.remove_all_jobs('default')
@@ -64,6 +51,7 @@ async def scheduler():
 @pytest.fixture(scope='class')
 async def user_id():
     return 777777777
+
 
 @pytest.fixture(scope='class')
 async def chat_id():
@@ -101,7 +89,7 @@ async def message(chat_id):
 @pytest.fixture(scope='session')
 async def redis_client():
     redis_client = aioredis.from_url(
-        url=f'{settings.redis_uri}/0',
+        url=f'{settings.redis_uri}/{settings.REDIS_JOB_DATABASES_TEST}',
         decode_responses=True,
         protocol=3,
         retry_on_timeout=True

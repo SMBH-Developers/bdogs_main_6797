@@ -31,9 +31,7 @@ async def ping(
             kwargs={
                 'user_id': user_id,
                 'client': client,
-                'message': message,
-                'scheduler': scheduler,
-                'job_id': job_id
+                'message': message
             },
             id=job_id,
             replace_existing=True,

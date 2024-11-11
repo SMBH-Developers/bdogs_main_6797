@@ -1,4 +1,10 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.jobstores.redis import RedisJobStore
+from apscheduler.executors.pool import ProcessPoolExecutor
+from apscheduler.executors.asyncio import AsyncIOExecutor
+from src.tasks.scheduler_singl import SchedulerSingleton
+from src.config import settings
+
 
 class Singleton:
     _instance = None
@@ -11,4 +17,25 @@ class Singleton:
     
     
 class SchedulerSingleton(Singleton, AsyncIOScheduler):
-    pass
+    
+    def __init__(self, **kwargs, test_mode: bool = False):
+        jobstores = {
+            'default': RedisJobStore(
+                jobs_key='dispatched_trips_jobs',
+                run_times_key='dispatched_trips_running',
+                host=settings.REDIS_HOST_NAME,
+                db=settings.REDIS_JOB_DATABASES_TEST if test_mode else settings.REDIS_JOB_DATABASES,
+                port=settings.REDIS_PORT,
+                password=settings.REDIS_PASSWORD
+            )
+        }
+        executors = {
+            'default': AsyncIOExecutor(),
+            'processpool': ProcessPoolExecutor(3)
+        }
+        super().__init__(
+            {'apscheduler.timezone': 'Europe/Moscow'},
+            jobstores=jobstores,
+            executors=executors,
+            **kwargs
+        )

@@ -7,7 +7,7 @@ def close_job(job):
     @wraps(job)
     async def close_job_wrapper(*args, **kwargs):
         try:
-            scheduler = kwargs['scheduler']
+            scheduler = 
             job_id = kwargs['job_id']
             job_result = await job(*args, **kwargs)
             if job_result:
