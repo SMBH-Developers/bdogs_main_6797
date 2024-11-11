@@ -96,7 +96,7 @@ async def redis_client(event_loop):
         protocol=3,
             retry_on_timeout=True
         )
-        if redis_client.ping():
+        if await redis_client.ping():
             yield redis_client
         else:
             logger.error('Failed to connect to Redis')
