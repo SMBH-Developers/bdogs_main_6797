@@ -29,7 +29,7 @@ def event_loop():
         loop = policy.new_event_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
-    yield loopevent_loop
+    yield loop
     loop.close()
 
 
