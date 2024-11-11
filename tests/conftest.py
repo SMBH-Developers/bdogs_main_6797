@@ -1,6 +1,7 @@
 import asyncio
 from datetime import datetime
 from dataclasses import dataclass
+import os
 
 import pytest
 import pytest_asyncio
@@ -29,6 +30,9 @@ def event_loop(request):
     yield loop
     loop.close()
 
+@pytest.fixture(scope='session', autouse=True)
+async def set_mode(event_loop):
+    os.environ['MODE'] = 'TEST'
 
 @pytest.fixture(scope='session')
 async def get_client(message):

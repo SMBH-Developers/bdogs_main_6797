@@ -14,6 +14,7 @@ from src.models import db
 from src.utils import Additional, get_date_by_weekday, extract_card_from_command, get_folder_stats_today, get_name
 from src.services import GoogleDP
 from src.tasks.scheduler_singl import SchedulerSingleton
+from src.tasks.ping.utill import is_last_message_time_read
 from src.tasks.ping import ping
 
 from add_users import parse_users
@@ -39,8 +40,8 @@ async def send_text_with_name(message: types.Message, scheduler: SchedulerSingle
 
 @client.on_message(filters.chat(settings.developers_ids) & filters.command('test-check-message-read-status'))
 async def test_chain_ping(_, message: types.Message):
-    from src.tasks.ping.utill import is_last_message_time_read
-    await is_last_message_time_read(client, message)
+    result = await is_last_message_time_read(client, message)
+    await message.reply(f'Result: {result}')
 
 @client.on_message(filters.command('get_statistic') & filters.me)
 async def statistic(_: Client, message: types.Message):
@@ -190,8 +191,9 @@ async def main(scheduler: AsyncIOScheduler):
 
 
 if __name__ == '__main__':
+    scheduler = SchedulerSingleton()
     try:
-        client.run(main(scheduler=SchedulerSingleton()))
+        client.run(main(scheduler=scheduler))
     finally:
         scheduler.shutdown()
         
