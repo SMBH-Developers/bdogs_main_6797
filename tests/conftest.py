@@ -88,8 +88,8 @@ async def redis_client(event_loop):
     try:
         redis_client = aioredis.from_url(
             url=f'{settings.redis_uri}/{settings.REDIS_JOB_DATABASES_TEST}',
-        decode_responses=True,
-        protocol=3,
+            #decode_responses=True, # if hget returns raise error
+            protocol=3,
             retry_on_timeout=True
         )
         if await redis_client.ping():

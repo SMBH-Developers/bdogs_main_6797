@@ -49,7 +49,7 @@ class TestPing:
         assert job_id is not None
         ping_step = await db.get_ping_step(user_id)
         assert ping_step == 'FIRST'
-        assert await redis_client.hget('dispatched_trips_jobs',job_id)
+        assert await redis_client.hget('dispatched_trips_jobs',job_id) # if ok returns bytes else None
         
     async def test_chain_ping(
         self,
