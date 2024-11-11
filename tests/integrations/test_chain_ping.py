@@ -37,6 +37,7 @@ class TestPing:
         job_time,
         job_id,
         redis_client,
+        scheduler
     ):
         '''Создаст задачу в schedule'''
         job_id = await ping(
@@ -56,7 +57,8 @@ class TestPing:
         get_client,
         user_id,
         job_id,
-        redis_client
+        redis_client,
+        scheduler
     ):
         '''Изменит последнее отправленное сообщение в классе клиента так как будет вызов send_ping'''
         result_message = await chain_ping(
@@ -82,6 +84,7 @@ class TestPing:
         job_id,
         redis_client,
         get_client,
+        scheduler
     ):
         await db.set_ping_step(user_id, 'THIRD')
         assert not await chain_ping(
