@@ -80,6 +80,12 @@ async def job_id(user_id):
     '''ID задачи'''
     return f'ping_{user_id}'
 
+
+@pytest.fixture(scope='class')
+async def ping_step():
+    '''Шаг пинга'''
+    return 'FIRST'
+
     
 @pytest.fixture(scope='class')
 async def message(chat_id):
