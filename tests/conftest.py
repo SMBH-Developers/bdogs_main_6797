@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from datasessiones import datasession
+from dataclasses import dataclass
 
 import pytest
 import pytest_asyncio
