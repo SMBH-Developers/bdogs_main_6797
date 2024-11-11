@@ -27,7 +27,7 @@ class TestPing:
             ping_step=ping_step
         )
         assert result_message is not None
-        assert result_message.text == PingText[ping_step].value.format(name=None)
+        assert result_message.text == PingText.paginate(ping_step, None)
         assert result_message.date > old_message_time
         
     async def test_ping(

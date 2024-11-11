@@ -17,3 +17,12 @@ class PingText(Enum):
             return steps[current_index + 1].name  # Возвращаем имя следующего шага
         except (ValueError, IndexError):
             return None
+    
+    @classmethod
+    def paginate(cls, ping_step: str, name: str) -> str:
+        text = cls[ping_step].value
+        if not name:
+            text = text.replace('{name}, ', '')
+        else:
+            text = text.format(name=name)
+        return text
