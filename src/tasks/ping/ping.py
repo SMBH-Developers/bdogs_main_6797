@@ -60,14 +60,14 @@ async def chain_ping(
     Если условия выполнены, то отправляет пинг
     Иначе удаляет задачу.
     '''
-    client = mock_client or client
+    client_ = mock_client or client
     if (
         (ping_step := await db.get_ping_step(user_id))
-        and await is_last_message_time(client, user_id, message)
-        and await is_last_message_time_read(client, message)
+        and await is_last_message_time(client_, user_id, message)
+        and await is_last_message_time_read(client_, message)
     ):
         if message := await send_ping(
-            client,
+            client_,
             user_id,
             ping_step,
             name=name if (name := await get_name(user_id)) else ''
