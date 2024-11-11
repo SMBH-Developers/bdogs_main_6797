@@ -23,6 +23,7 @@ def close_job(job):
             else:
                 scheduler.remove_job(job_id, 'default')
                 logger.info(f'Job {job_id} removed')
+                return
         except Exception as e:
             logger.error(f'Unexpected error closing job {job_id}: {e}')
         
