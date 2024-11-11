@@ -7,9 +7,9 @@ from src.tasks.scheduler_singl import SchedulerSingleton
 def close_job(job):
     @wraps(job)
     async def close_job_wrapper(*args, **kwargs):
+        job_id = kwargs['job_id']
         try:
             scheduler = SchedulerSingleton()
-            job_id = kwargs['job_id']
             job_result = await job(*args, **kwargs)
             if job_result:
                 current_job = scheduler.get_job(job_id, 'default')
@@ -26,7 +26,8 @@ def close_job(job):
                 return
         except Exception as e:
             logger.error(f'Unexpected error: {e}')
-        
+            scheduler.remove_job(job_id, 'default')
+            return
         return job_result
     
     return close_job_wrapper
