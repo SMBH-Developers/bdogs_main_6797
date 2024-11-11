@@ -50,7 +50,6 @@ async def chain_ping(
     user_id: int,
     client: Client,
     message: types.Message,
-    scheduler: SchedulerSingleton,
     job_id: str
 ) -> Optional[types.Message]:
     '''

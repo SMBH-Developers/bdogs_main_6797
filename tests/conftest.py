@@ -5,6 +5,7 @@ from dataclasses import dataclass
 import pytest
 import pytest_asyncio
 from pytest_asyncio import is_async_test
+from loguru import logger
 from sqlalchemy import delete, insert
 import redis.asyncio as aioredis
 from src.tasks.scheduler_singl import SchedulerSingleton
@@ -87,14 +88,27 @@ async def message(chat_id):
 
 @pytest.fixture(scope='session')
 async def redis_client(event_loop):
-    redis_client = aioredis.from_url(
-        url=f'{settings.redis_uri}/{settings.REDIS_JOB_DATABASES_TEST}',
+    redis_client = None
+    try:
+        redis_client = aioredis.from_url(
+            url=f'{settings.redis_uri}/{settings.REDIS_JOB_DATABASES_TEST}',
         decode_responses=True,
         protocol=3,
-        retry_on_timeout=True
-    )
-    yield redis_client
-    await redis_client.aclose()
+            retry_on_timeout=True
+        )
+        if redis_client.ping():
+            yield redis_client
+        else:
+            logger.error('Failed to connect to Redis')
+            raise Exception('Failed to connect to Redis')
+    
+    finally:
+        if redis_client:
+            try:
+                await redis_client.aclose()
+                await asyncio.sleep(0.1)
+            except Exception as e:
+                logger.error(f"Error closing Redis connection: {e}")
 
 
 @pytest.fixture(scope='class')

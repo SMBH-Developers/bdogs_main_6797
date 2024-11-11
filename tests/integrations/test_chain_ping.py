@@ -36,8 +36,8 @@ class TestPing:
         user_id,
         job_time,
         job_id,
-        redis_client,
-        scheduler
+        scheduler,
+        redis_client
     ):
         '''Создаст задачу в schedule'''
         job_id = await ping(
@@ -50,15 +50,15 @@ class TestPing:
         assert job_id is not None
         ping_step = await db.get_ping_step(user_id)
         assert ping_step == 'FIRST'
-        assert await redis_client.get(job_id)
+        assert await redis_client.hget('dispatched_trips_jobs',job_id)
         
     async def test_chain_ping(
         self,
         get_client,
         user_id,
         job_id,
-        redis_client,
-        scheduler
+        scheduler,
+        redis_client
     ):
         '''Изменит последнее отправленное сообщение в классе клиента так как будет вызов send_ping'''
         result_message = await chain_ping(
@@ -68,7 +68,7 @@ class TestPing:
             job_id=job_id
         )
         assert result_message is not None
-        redis_job = await redis_client.get(job_id)
+        redis_job = await redis_client.hget('dispatched_trips_jobs',job_id)
         assert redis_job is not None
         
         # так как декоратор close_job меняет kwargs message, то проверяем обновленное сообщение
@@ -93,7 +93,7 @@ class TestPing:
             message=get_client.message,
             job_id=job_id
         )
-        assert await redis_client.get(job_id) is None
+        assert await redis_client.hget('dispatched_trips_jobs',job_id) is None
         
         ping_step = await db.get_ping_step(user_id)
         assert ping_step is None
