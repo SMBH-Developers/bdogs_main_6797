@@ -48,7 +48,7 @@ class MockClient:
         return self.message
     
     async def resolve_peer(self, user_id):
-        return MockChat(id=user_id)
+        return MockChat(id=user_id).id
     
     async def invoke(self, *args, **kwargs):
         return [MockDialog(read_outbox_max_id=self.message.id + 1)]
