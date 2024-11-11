@@ -41,7 +41,7 @@ async def check_message_read_status(client: Client, message: types.Message) -> O
         sleep_threshold=30
     )
 
-    for dialog in dialogs:
+    for dialog in dialogs.dialogs:
         if message.id < dialog.read_outbox_max_id: # если сообщение прочитано
             return True
 
