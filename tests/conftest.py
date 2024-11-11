@@ -32,7 +32,7 @@ def event_loop(request):
 
 @pytest.fixture(scope='session', autouse=True)
 async def set_mode(event_loop):
-    os.environ['MODE'] = 'TEST'
+    settings.MODE = 'TEST'
 
 @pytest.fixture(scope='session')
 async def get_client(message):
@@ -40,7 +40,7 @@ async def get_client(message):
 
 
 @pytest.fixture(scope='session')
-async def scheduler():
+async def scheduler(set_mode):
     scheduler = SchedulerSingleton()
     scheduler.start()
     yield scheduler
