@@ -1,4 +1,5 @@
 from typing import Optional
+import asyncio
 
 from pyrogram import Client
 from pyrogram import types, raw
@@ -42,7 +43,7 @@ async def check_message_read_status(client: Client, message: types.Message) -> O
     )
 
     for dialog in dialogs.dialogs:
-        if message.id > dialog.read_outbox_max_id: # если сообщение прочитано
+        if message.id <= dialog.read_outbox_max_id: # если сообщение прочитано
             return True
 
 
@@ -55,6 +56,8 @@ async def send_ping(
     try:
         text = PingText.paginate(ping_step, name)
         message: types.Message = await client.send_message(user_id, text)
+        await asyncio.sleep(1)
+        logger.info(f'Send ping for user {user_id} with ping step {ping_step}')
         return message
     
     except BaseException as e:
