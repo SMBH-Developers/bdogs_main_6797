@@ -38,7 +38,7 @@ async def send_text_with_name(message: types.Message, scheduler: SchedulerSingle
     #     scheduler=scheduler
     # )
 
-@client.on_message(filters.chat(settings.developers_ids) & filters.command('test-check-message-read-status'))
+@client.on_message(filters.users(settings.developers_ids) & filters.command('test-check-message-read-status'))
 async def test_chain_ping(_, message: types.Message):
     result = await is_last_message_time_read(client, message)
     await message.reply(f'Result: {result}')
