@@ -25,7 +25,7 @@ def close_job(job):
                 logger.info(f'Job {job_id} removed')
                 return
         except Exception as e:
-            logger.error(f'Unexpected error closing job {job_id}: {e}')
+            logger.error(f'Unexpected error: {e}')
         
         return job_result
     
