@@ -34,7 +34,7 @@ async def check_message_read_status(client: Client, message: types.Message) -> O
     dialogs: list[raw.types.Dialog] = await client.invoke(
         raw.functions.messages.GetPeerDialogs(
             peers=[
-                raw.types.InputDialogPeer(peer) # возможно просто peer передать
+                raw.types.InputDialogPeer(peer=peer) # возможно просто peer передать
             ]
         ),
         retries=3,
