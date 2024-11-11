@@ -84,7 +84,7 @@ class TestPing:
         get_client,
         
     ):
-        await db.set_ping_step(user_id, 'THIRD')
+        await db.set_ping_step(user_id, None)
         assert not await chain_ping(
             user_id=user_id,
             client=get_client,
