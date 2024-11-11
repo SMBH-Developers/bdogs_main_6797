@@ -23,9 +23,7 @@ class Singleton:
 class SchedulerSingleton(Singleton, AsyncIOScheduler):
     
     def __init__(self, **kwargs):
-        print(settings.MODE)
         if not hasattr(self, '_initialized') or not self._initialized:
-            print(settings.MODE)
             jobstores = {
                 'default': RedisJobStore(
                     jobs_key='dispatched_trips_jobs',

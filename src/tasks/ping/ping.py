@@ -6,7 +6,7 @@ from pyrogram import types, raw
 
 from .text import PingText
 from src.models import db
-from src.tasks.scheduler_singl import SchedulerSingleton
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .utill import is_last_message_time, is_last_message_time_read, send_ping
 from src.utils import get_name
 from src.tasks import close_job
@@ -16,7 +16,7 @@ async def ping(
     client: Client,
     user_id: int,
     message: types.Message,
-    scheduler = SchedulerSingleton(),
+    scheduler: AsyncIOScheduler,
     job_time: int = 20
 ) -> Optional[str]:
     '''После автоматезированного сообщения создает задачу в schedule на 20 минут
