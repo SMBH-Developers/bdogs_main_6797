@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     REDIS_PORT: int = Field(default=6380)
     REDIS_PASSWORD: str = Field(default='')
     REDIS_JOB_DATABASES: int = Field(default=0) # 0 - default, by apscheduler
+    REDIS_JOB_DATABASES_TEST: int = Field(default=1) # 1 - test
     
     @property
     def redis_uri(self) -> str:

@@ -49,7 +49,7 @@ async def scheduler():
             jobs_key='dispatched_trips_jobs',
             run_times_key='dispatched_trips_running',
             host=settings.REDIS_HOST_NAME,
-            db=settings.REDIS_JOB_DATABASES,
+            db=settings.REDIS_JOB_DATABASES_TEST,
             port=settings.REDIS_PORT,
             password=settings.REDIS_PASSWORD
             )
