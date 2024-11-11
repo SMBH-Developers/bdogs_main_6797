@@ -41,7 +41,6 @@ class TestPing:
     ):
         '''Создаст задачу в schedule'''
         job_id = await ping(
-            client=get_client,
             user_id=user_id,
             message=get_client.message,
             job_time=job_time,
@@ -63,7 +62,6 @@ class TestPing:
         '''Изменит последнее отправленное сообщение в классе клиента так как будет вызов send_ping'''
         result_message = await chain_ping(
             user_id=user_id,
-            client=get_client,
             message=get_client.message,
             job_id=job_id
         )
@@ -89,7 +87,6 @@ class TestPing:
         await db.set_ping_step(user_id, None)
         assert not await chain_ping(
             user_id=user_id,
-            client=get_client,
             message=get_client.message,
             job_id=job_id
         )
