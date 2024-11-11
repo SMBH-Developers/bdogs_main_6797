@@ -7,7 +7,11 @@ from src.tasks.scheduler_singl import SchedulerSingleton
 def close_job(job):
     @wraps(job)
     async def close_job_wrapper(*args, **kwargs):
-        job_id = kwargs['job_id']
+        try:
+            job_id = kwargs['job_id']
+        except KeyError:
+            logger.error('Job ID not found in kwargs, old job will be removed')
+            return
         try:
             scheduler = SchedulerSingleton()
             job_result = await job(*args, **kwargs)
