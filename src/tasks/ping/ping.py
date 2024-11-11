@@ -19,7 +19,7 @@ async def ping(
     message: types.Message,
     scheduler: AsyncIOScheduler,
     job_time: int = 20,
-    mock_client: Optional[MockClient] = None
+    mock_client: Optional[MockClient] = ''
 ) -> Optional[str]:
     '''После автоматезированного сообщения создает задачу в schedule на 20 минут
     '''
