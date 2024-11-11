@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, TypeVar
 from datetime import datetime, timedelta
 from loguru import logger
 from pyrogram import Client
@@ -12,11 +12,14 @@ from src.utils import get_name
 from src.tasks import close_job
 from src.config import client
 
+MockClient = TypeVar('MockClient')
+
 async def ping(
     user_id: int,
     message: types.Message,
     scheduler: AsyncIOScheduler,
-    job_time: int = 20
+    job_time: int = 20,
+    mock_client: Optional[MockClient] = None
 ) -> Optional[str]:
     '''После автоматезированного сообщения создает задачу в schedule на 20 минут
     '''
@@ -29,7 +32,7 @@ async def ping(
             func=chain_ping,
             kwargs={
                 'user_id': user_id,
-                # 'client': client,
+                'client': mock_client,
                 'message': message
             },
             id=job_id,
@@ -48,14 +51,15 @@ async def ping(
 async def chain_ping(
     user_id: int,
     message: types.Message,
-    job_id: str
+    job_id: str,
+    mock_client: Optional[MockClient] = None
 ) -> Optional[types.Message]:
     '''
     Проверяет последнее сообщение пользователя и проверяет его статус
     Если условия выполнены, то отправляет пинг
     Иначе удаляет задачу.
     '''
-    
+    client = mock_client or client
     if (
         (ping_step := await db.get_ping_step(user_id))
         and await is_last_message_time(client, user_id, message)
