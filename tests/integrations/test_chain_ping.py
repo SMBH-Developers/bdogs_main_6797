@@ -36,14 +36,16 @@ class TestPing:
         user_id,
         job_time,
         job_id,
-        redis_client
+        redis_client,
+        scheduler
     ):
         '''Создаст задачу в schedule'''
         job_id = await ping(
             client=get_client,
             user_id=user_id,
             message=get_client.message,
-            job_time=job_time
+            job_time=job_time,
+            scheduler=scheduler
         )
         
         assert job_id is not None
