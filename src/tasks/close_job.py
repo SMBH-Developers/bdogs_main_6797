@@ -17,7 +17,7 @@ def close_job(job):
             job_result = await job(*args, **kwargs)
             if job_result:
                 current_job = scheduler.get_job(job_id, 'default')
-                if current_job:
+                if current_job and job_result != 'SKIP':
                     current_kwargs = current_job.kwargs
                     current_kwargs['message'] = job_result
                     scheduler.modify_job(
@@ -32,6 +32,7 @@ def close_job(job):
             logger.error(f'Unexpected error: {e}')
             scheduler.remove_job(job_id, 'default')
             return
+        
         return job_result
     
     return close_job_wrapper
