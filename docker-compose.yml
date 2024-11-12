@@ -1,8 +1,11 @@
 services:
   redis:
-    build: .
+    build:
+      context: .
+      dockerfile: redis.dockerfile
     container_name: redis_bot_app
     restart: unless-stopped
+    user: redis
     ports:
       - 6380:6380
     volumes:

@@ -167,5 +167,8 @@ ignore_list.json
 !.gitkeep
 data/json/*.json
 
+# Redis persistence files
+*.aof
 *.aof.*
 *.rdb
+*.rdb.*

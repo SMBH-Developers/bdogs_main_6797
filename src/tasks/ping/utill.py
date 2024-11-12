@@ -32,10 +32,10 @@ async def is_last_message_time_read(client: Client, message: types.Message) -> O
 async def check_message_read_status(client: Client, message: types.Message) -> Optional[bool]:
     '''Peers - это чаты или каналы'''
     peer: raw.base.InputPeer  = await client.resolve_peer(message.chat.id)
-    dialogs: list[raw.types.Dialog] = await client.invoke(
+    dialogs: raw.types.messages.PeerDialogs = await client.invoke(
         raw.functions.messages.GetPeerDialogs(
             peers=[
-                raw.types.InputDialogPeer(peer=peer) # возможно просто peer передать
+                raw.types.InputDialogPeer(peer=peer)
             ]
         ),
         retries=3,
@@ -43,6 +43,7 @@ async def check_message_read_status(client: Client, message: types.Message) -> O
     )
 
     for dialog in dialogs.dialogs:
+        dialog: raw.types.Dialog
         if message.id <= dialog.read_outbox_max_id: # если сообщение прочитано
             return True
 
