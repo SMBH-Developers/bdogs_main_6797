@@ -65,7 +65,7 @@ async def chain_ping(
         (ping_step := await db.get_ping_step(user_id))
         and await is_last_message_time(client_, user_id, message)
     ):
-        is_not_skip = await is_last_message_time_read(client_, message) # TODO: ЕСЛИ не прочитано через 20 минут (интервальное сообщение), то таска удаляется
+        is_not_skip = await is_last_message_time_read(client_, message)
         if is_not_skip:
             if message := await send_ping(
                 client_,
@@ -78,6 +78,7 @@ async def chain_ping(
             else:
                 await db.set_ping_step(user_id, None)
         else:
+            logger.info(f'Ping task {job_id} for user {user_id} SKIP')
             return 'SKIP'
             
     return 
