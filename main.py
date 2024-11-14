@@ -188,7 +188,8 @@ async def main(scheduler: AsyncIOScheduler):
         func=send_folders_statistic,
         replace_existing=True,
         misfire_grace_time=120,
-        coalesce=True
+        coalesce=True,
+        id='send_folders_statistic'
     )
     scheduler.add_job(
         trigger='cron',
@@ -197,7 +198,8 @@ async def main(scheduler: AsyncIOScheduler):
         func=send_folders_statistic_new,
         replace_existing=True,
         misfire_grace_time=120,
-        coalesce=True
+        coalesce=True,
+        id='send_folders_statistic_new'
     )
     scheduler.add_job(
         trigger='cron',
@@ -206,7 +208,8 @@ async def main(scheduler: AsyncIOScheduler):
         func=Additional.dispatch_users_via_daily_folders,
         replace_existing=True,
         misfire_grace_time=120,
-        coalesce=True
+        coalesce=True,
+        id='dispatch_users_via_daily_folders'
     )
     # scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
