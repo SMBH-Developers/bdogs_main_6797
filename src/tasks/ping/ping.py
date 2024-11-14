@@ -81,4 +81,4 @@ async def chain_ping(
             logger.info(f'Ping task {job_id} for user {user_id} SKIP')
             return 'SKIP'
             
-    return 
+    return
