@@ -1,8 +1,6 @@
 import asyncio
 import aiohttp
 import re
-from typing import List
-from asyncio import Task
 
 from loguru import logger
 from pyrogram import Client, filters, types, idle
@@ -21,6 +19,7 @@ from src.tasks.ping import ping
 from add_users import parse_users
 
 google_dp = GoogleDP()
+
 
 async def send_text_with_name(message: types.Message, scheduler: SchedulerSingleton):
     name = await get_name(message.from_user.id)
@@ -42,6 +41,7 @@ async def send_text_with_name(message: types.Message, scheduler: SchedulerSingle
 # async def test_chain_ping(_, message: types.Message):
 #     result = await is_last_message_time_read(client, message)
 #     await message.reply(f'Result: {result}')
+
 
 @client.on_message(filters.command('get_statistic') & filters.me)
 async def statistic(_: Client, message: types.Message):
@@ -188,7 +188,8 @@ async def main(scheduler: AsyncIOScheduler):
         func=send_folders_statistic,
         replace_existing=True,
         misfire_grace_time=120,
-        coalesce=True
+        coalesce=True,
+        id='send_folders_statistic'
     )
     scheduler.add_job(
         trigger='cron',
@@ -197,7 +198,8 @@ async def main(scheduler: AsyncIOScheduler):
         func=send_folders_statistic_new,
         replace_existing=True,
         misfire_grace_time=120,
-        coalesce=True
+        coalesce=True,
+        id='send_folders_statistic_new'
     )
     scheduler.add_job(
         trigger='cron',
@@ -206,7 +208,8 @@ async def main(scheduler: AsyncIOScheduler):
         func=Additional.dispatch_users_via_daily_folders,
         replace_existing=True,
         misfire_grace_time=120,
-        coalesce=True
+        coalesce=True,
+        id='dispatch_users_via_daily_folders'
     )
     # scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
@@ -219,5 +222,6 @@ if __name__ == '__main__':
     try:
         client.run(main(scheduler=scheduler))
     finally:
+        client.stop()
         scheduler.shutdown()
         
