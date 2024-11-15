@@ -1,7 +1,7 @@
 from loguru import logger
 
 from src.config import client
-from src.models import db
+from src.database import db
 
 
 async def parse_users():

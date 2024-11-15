@@ -5,7 +5,7 @@ from pyrogram import Client
 from pyrogram import types, raw
 
 from .text import PingText
-from src.models import db
+from src.database import db
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .utill import is_last_message_time, is_last_message_time_read, send_ping
 from src.utils import get_name

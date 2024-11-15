@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Dict, List, Tuple
 
 from src.config import client
-from src.models import async_session, User
+from src.database import async_session, User
 
 from sqlalchemy import select
 

@@ -1,7 +1,7 @@
 import loguru
 from loguru import logger
 
-from src.constants import LOGS_DIR
+from src.utils.constants import LOGS_DIR
 
 
 class _RecordsFilter:

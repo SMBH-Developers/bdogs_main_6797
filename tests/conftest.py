@@ -11,7 +11,7 @@ from sqlalchemy import delete, insert
 import redis.asyncio as aioredis
 from src.tasks.scheduler_singl import SchedulerSingleton
 
-from src.models import User, async_session
+from src.database import User, async_session
 from src.config import settings
 from tests.integrations.mock import MockClient, MockChat, MockMessage
 

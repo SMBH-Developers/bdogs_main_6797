@@ -1,6 +1,6 @@
 from pyrogram import Client
 
-from src.constants import SESSIONS_DIR
+from src.utils.constants import SESSIONS_DIR
 from . import settings, _logger_config
 
 

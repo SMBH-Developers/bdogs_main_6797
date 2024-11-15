@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from loguru import logger
 
-from src.models._engine import async_session
+from src.database._engine import async_session
 from ._models import *
 
 

@@ -5,7 +5,7 @@ from src.tasks.ping.utill import (
     is_last_message_time,
     send_ping
 )
-from src.models import db
+from src.database import db
 from src.tasks.ping.utill import PingText
 
 @pytest.mark.usefixtures('add_user', 'scheduler')

@@ -3,8 +3,8 @@ from google.oauth2.service_account import Credentials
 
 from loguru import logger
 
-from src.models import db
-from src.constants import DATA_DIR
+from src.database import db
+from src.utils.constants import DATA_DIR
 
 
 def get_creds():

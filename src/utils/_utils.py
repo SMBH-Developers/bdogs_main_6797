@@ -4,9 +4,6 @@ from pyrogram import types
 import aiohttp
 
 
-__all__ = ["get_date_by_weekday", "extract_card_from_command"]
-
-
 def get_date_by_weekday(day: str):
     days = {'понедельник': 0, 'вторник': 1, 'среда': 2,
             'четверг': 3, 'пятница': 4, 'суббота': 5, 'воскресенье': 6}

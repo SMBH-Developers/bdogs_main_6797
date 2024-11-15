@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 from sqlalchemy import select
 
-from src.models import Card, User, Shift, async_session
+from src.database import Card, User, Shift, async_session
 
 
 async def get_users() -> Dict[int, datetime]:  # return {id: datetime}

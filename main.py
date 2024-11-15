@@ -9,7 +9,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from src.config import settings, client
 from src.config._settings import developers_ids
-from src.models import db
+from src.database import db
 from src.utils import Additional, get_date_by_weekday, extract_card_from_command, get_folder_stats_today, get_name
 from src.services import GoogleDP
 from src.tasks.scheduler_singl import SchedulerSingleton

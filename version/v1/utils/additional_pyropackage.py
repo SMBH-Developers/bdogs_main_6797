@@ -7,7 +7,7 @@ from pyrogram.raw.types import DialogFilter, DialogFilterDefault, InputPeerUser
 from pyrogram.raw.base import InputPeer
 
 from src.config import client
-from src.models import db
+from src.database import db
 
 
 @dataclass

@@ -5,7 +5,7 @@ from datetime import datetime, date
 
 from sqlalchemy import insert
 
-from src.models import User, Card, Shift, async_session
+from src.database import User, Card, Shift, async_session
 
 
 async def insert_users(users: Dict[int, datetime]):

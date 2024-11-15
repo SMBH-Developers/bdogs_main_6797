@@ -1,13 +1,15 @@
 from datetime import date, datetime
 from typing import Literal
 from sqlalchemy import BIGINT, TIMESTAMP, DATE, func, String, text
-from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column, DeclarativeBase
 
 
-__all__ = ["Base", "User", "Shift", "Card", "ManagerList"]
+
+__all__ = ["Base", "User", "Shift", "Card", "Managers"]
 
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 class User(Base):
@@ -35,8 +37,8 @@ class Card(Base):
     status: Mapped[str] = mapped_column(String(128), comment='Card like 1234567891234567')
 
 
-class ManagerList(Base):
-    __tablename__ = 'managers'
+class Managers(Base):
+    __tablename__ = 'managers_list'
 
     id: Mapped[int] = mapped_column(BIGINT, autoincrement=True, primary_key=True)
-    managers: Mapped[str] = mapped_column(String)
+    prefix_name: Mapped[str] = mapped_column(String(16)) # Ек Ди Су Ек2 Ка Ан Эл Та Ве Стас
