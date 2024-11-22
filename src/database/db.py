@@ -67,6 +67,7 @@ async def get_managers_today() -> str | None:
 
 
 async def set_managers_shifts(shifts: dict[date, str]):
+    '''shifts: {'2024-11-09': 'Ве Та Ан Су'}'''
     async with async_session() as session:
         for dt, managers in shifts.items():
             await session.execute(insert(Shift).values(date=dt, managers=managers).on_conflict_do_update(index_elements=['date'],

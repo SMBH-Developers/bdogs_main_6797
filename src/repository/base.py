@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type
+from typing import TypeVar, Generic, Type, Optional
 from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
@@ -14,18 +14,20 @@ OutputSchema = TypeVar("OutputSchema", bound=BaseModel)
 
 class BaseRepositoryInterface(Generic[Model, InputSchema, OutputSchema], ABC):
     _model: Type[Model]
+    _output_schema: Type[OutputSchema]
+    _input_schema: Type[InputSchema]
 
     def __init__(self, session: AsyncSession):
         self.session = session
 
     @abstractmethod
-    async def fetch_one(self, id_: int, **filters) -> OutputSchema:
+    async def fetch_one(self, id_: int, **filters) -> Optional[OutputSchema]:
         raise NotImplementedError
 
     @abstractmethod
     async def fetch_all(
         self, offset: int = 0, limit: int = 1000, **filters
-    ) -> list[OutputSchema]:
+    ) -> Optional[list[OutputSchema]]:
         raise NotImplementedError
 
     @abstractmethod

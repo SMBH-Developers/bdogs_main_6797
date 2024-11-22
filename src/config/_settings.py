@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     api_id: int
     api_hash: str
     phone_number: str
+    GOOGLE_CREDS: dict
 
     postgres_dsn: PostgresDsn
 
