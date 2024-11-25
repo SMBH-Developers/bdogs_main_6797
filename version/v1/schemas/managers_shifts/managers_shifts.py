@@ -27,19 +27,17 @@ class ManagerBase(BaseSchema):
     prefix_name: str
 
 
-# Схемы для отображения связей
-class ShiftSimple(ShiftBase):
-    pass
-    
-
 class ManagerSimple(ManagerBase):
     pass
 
 
-class OutputShift(ShiftBase):
+class ShiftSimple(ShiftBase):
+    managers: Optional[List['ManagerSimple']] = []
+
+
+class OutputShift(ShiftSimple):
     """Полная схема смены с менеджерами"""
     id: int
-    managers: Optional[List['ManagerSimple']] = []
 
 
 class OutputManager(ManagerBase):

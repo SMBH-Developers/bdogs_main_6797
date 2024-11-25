@@ -1,10 +1,10 @@
 from typing import Optional, List
-
+from datetime import date
 from sqlalchemy import select, insert, update
-from sqlalchemy.orm import selectinload, joinedload
+from sqlalchemy.orm import selectinload, joinedload, load_only
 
 from .base import BaseRepository
-from src.database._models import Shift
+from src.database._models import Managers, Shift
 from version.v1.schemas.managers_shifts import ShiftSimple, OutputShift
 
 class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
@@ -13,11 +13,11 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
     _input_schema = ShiftSimple
 
     
-    async def fetch_one(self, id_: int, **filters) -> Optional[OutputShift]:
+    async def fetch_one(self, date_: date, **filters) -> Optional[OutputShift]:
         stmt = (
             select(self._model)
             .options(joinedload(self._model.managers))
-            .filter_by(id=id_, **filters)
+            .filter_by(date=date_, **filters)
         )
         result = (await self.session.execute(stmt)).unique().scalar_one_or_none()
         return self._output_schema.model_validate(result) if result else None
@@ -38,18 +38,35 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
         result = (await self.session.execute(stmt)).unique().scalars().all()
         return [self._output_schema.model_validate(item) for item in result]
 
+    async def _get_managers_by_prefixes(self, prefixes: list[str]) -> list[Managers]:
+        stmt = (
+            select(Managers)
+            .options(load_only(Managers.id))
+            .where(Managers.prefix_name.in_(prefixes))
+        )
+        return (await self.session.execute(stmt)).scalars().all()
+
     async def insert_one(self, data: ShiftSimple) -> None:
-        stmt = insert(self._model).values(**data.model_dump()).returning(self._model)
-        result = (await self.session.execute(stmt)).scalar_one()
-        return self._output_schema.model_validate(result)
+        shift = self._model(**data.model_dump(exclude={'managers'}))
+        
+        if data.managers:
+            prefixes = [m.prefix_name for m in data.managers]
+            shift.managers = await self._get_managers_by_prefixes(prefixes)
+        
+        self.session.add(shift)
     
     async def insert_bulk(self, data: list[ShiftSimple]) -> None:
-        stmt = insert(self._model).values([entity.model_dump() for entity in data])
-        await self.session.execute(stmt)
+        ''' Не должно быть реализовано, так как есть связь многие ко многим '''
+        raise NotImplementedError
 
-    async def update_one(self, id_: int, data: ShiftSimple) -> None:
-        stmt = update(self._model).filter_by(id=id_).values(**data.model_dump())
-        await self.session.execute(stmt)
+    async def update_one(self, data: ShiftSimple) -> None:
+        # stmt = (
+        #     select(self._model)
+        #     .filter_by(date=data.date)
+        #     .values(**data.model_dump(exclude={'managers'}))
+        # )
+        # await self.session.execute(stmt)
+        ...
 
     async def delete_one(self, id_: int) -> None:
         stmt = update(self._model).filter_by(id=id_).values(is_deleted=True)
