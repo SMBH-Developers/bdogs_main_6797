@@ -33,19 +33,17 @@ async def get_users_and_dialogs() -> Tuple[Dict[int, str], List[int]]:
 async def get_folder_stats_today():
     users_with_folder_dict, relevant_dialogs = await get_users_and_dialogs()
     folder_counts = {"Нет папки": 0}
-    result = ""
-
+    result_parts = {}
+    
     for user_id in relevant_dialogs:
         folder = users_with_folder_dict.get(user_id)
         if folder is None:
             folder_counts["Нет папки"] += 1
         else:
-            if folder in folder_counts:
-                folder_counts[folder] += 1
-            else:
-                folder_counts[folder] = 1
-            transfer = '\n\n' if user_id == relevant_dialogs[-1] else '\n'
-            result += f'Сегодня {folder}: {folder_counts.get(folder, 0)}{transfer}'
+            folder_counts[folder] = folder_counts.get(folder, 0) + 1
+            result_parts[folder] = f'Сегодня {folder}: {folder_counts[folder]}'
+    
+    result = f"{'\n'.join(result_parts.values())}\n\n"
 
 
     total_in_folders = sum(folder_counts.values()) - folder_counts["Нет папки"]
