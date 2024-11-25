@@ -44,9 +44,9 @@ async def get_users_and_dialogs() -> Tuple[Dict[int, str], List[int]]:
                 deleted_users.append(user_id)
         
         # Очищаем папки у удаленных пользователей
-        # if deleted_users:
-        #     await cleanup_deleted_users(deleted_users)
-        
+        if deleted_users:
+             await cleanup_deleted_users(deleted_users)
+        logger.info(deleted_users)
         # Получаем активные диалоги
         relevant_dialogs = await get_relevant_dialogs(
             dialogs, 
@@ -135,7 +135,7 @@ async def get_folder_stats_today():
             folder_counts[folder] = folder_counts.get(folder, 0) + 1
             result_parts[folder] = f'Сегодня {folder}: {folder_counts[folder]}'
     
-    result = f"{'\n'.join(result_parts.values())}\n\n"
+    result = '\n'.join(result_parts.values()) + "\n\n"
 
 
     total_in_folders = sum(folder_counts.values()) - folder_counts["Нет папки"]
