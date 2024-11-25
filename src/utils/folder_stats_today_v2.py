@@ -11,7 +11,12 @@ from sqlalchemy import select, update
 
 async def get_users():
     async with async_session() as session:
-        users = (await session.execute(select(User.id, User.folder).where(User.registration_date >= datetime.now().replace(hour=00, minute=00, second=00, microsecond=00)))).all()
+        users = (
+            await session.execute(
+                select(User.id, User.folder)
+                .where(User.registration_date >= datetime.now().replace(hour=00, minute=00, second=00, microsecond=00))
+            )
+        ).all()
     return users
 
 
@@ -45,7 +50,8 @@ async def get_users_and_dialogs() -> Tuple[Dict[int, str], List[int]]:
         
         # Очищаем папки у удаленных пользователей
         if deleted_users:
-             await cleanup_deleted_users(deleted_users)
+            await cleanup_deleted_users(deleted_users)
+             
         logger.info(deleted_users)
         # Получаем активные диалоги
         relevant_dialogs = await get_relevant_dialogs(
@@ -73,17 +79,31 @@ async def cleanup_deleted_users(deleted_users: List[int]) -> None:
     Args:
         deleted_users: Список ID удаленных пользователей
     """
+    if not deleted_users:  # Проверка на пустой список
+        return
+        
     try:
         async with async_session() as session:
-            await session.execute(
+            # Добавляем проверку существования записей перед обновлением
+            result = await session.execute(
                 update(User)
-                .where(User.id.in_(deleted_users))
+                .where(
+                    User.id.in_(deleted_users),
+                    User.folder.isnot(None)  # Обновляем только если папка существует
+                )
                 .values(folder=None)
+                .returning(User.id)  # Возвращаем ID обновленных пользователей
             )
+            updated_ids = result.scalars().all()
             await session.commit()
-            logger.info(f"Очищены папки у {len(deleted_users)} удаленных чатов")
+            
+            logger.info(
+                f"Очищены папки у {len(updated_ids)} из {len(deleted_users)} удаленных чатов. "
+                f"IDs: {updated_ids}"
+            )
     except Exception as e:
         logger.error(f"Ошибка при очистке удаленных пользователей: {str(e)}")
+        await session.rollback()  # Откатываем транзакцию при ошибке
         raise
 
 
