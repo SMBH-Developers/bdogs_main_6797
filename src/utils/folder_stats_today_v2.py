@@ -6,7 +6,7 @@ import asyncio
 from src.config import client
 from src.models import async_session, User
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, and_
 
 
 async def get_users():
@@ -51,8 +51,7 @@ async def get_users_and_dialogs() -> Tuple[Dict[int, str], List[int]]:
         # Очищаем папки у удаленных пользователей
         if deleted_users:
             await cleanup_deleted_users(deleted_users)
-             
-        logger.info(deleted_users)
+
         # Получаем активные диалоги
         relevant_dialogs = await get_relevant_dialogs(
             dialogs, 
@@ -79,8 +78,6 @@ async def cleanup_deleted_users(deleted_users: List[int]) -> None:
     Args:
         deleted_users: Список ID удаленных пользователей
     """
-    if not deleted_users:  # Проверка на пустой список
-        return
         
     try:
         async with async_session() as session:
@@ -88,11 +85,13 @@ async def cleanup_deleted_users(deleted_users: List[int]) -> None:
             result = await session.execute(
                 update(User)
                 .where(
-                    User.id.in_(deleted_users),
-                    User.folder.isnot(None)  # Обновляем только если папка существует
+                    and_(
+                        User.id.in_(deleted_users),
+                        User.folder.isnot(None)
+                    )
                 )
                 .values(folder=None)
-                .returning(User.id)  # Возвращаем ID обновленных пользователей
+                .returning(User.id)
             )
             updated_ids = result.scalars().all()
             await session.commit()
