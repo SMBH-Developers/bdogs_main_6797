@@ -144,7 +144,7 @@ async def get_relevant_dialogs(
 async def get_folder_stats_today():
     users_with_folder_dict, relevant_dialogs = await get_users_and_dialogs()
     folder_counts = {"Нет папки": 0}
-    result_parts = {}
+    # result_parts = {}
     
     for user_id in relevant_dialogs:
         folder = users_with_folder_dict.get(user_id)
@@ -152,10 +152,15 @@ async def get_folder_stats_today():
             folder_counts["Нет папки"] += 1
         else:
             folder_counts[folder] = folder_counts.get(folder, 0) + 1
-            result_parts[folder] = f'Сегодня {folder}: {folder_counts[folder]}'
+            # result_parts[folder] = f'Сегодня {folder}: {folder_counts[folder]}'
     
-    result = '\n'.join(result_parts.values()) + "\n\n"
-
+    # result = '\n'.join(result_parts.values()) + "\n\n"
+    result = ""
+    result += "Сегодня Су: {}\n".format(folder_counts.get("Су", 0))
+    result += "Сегодня Ек2: {}\n".format(folder_counts.get("Ек2", 0))
+    result += "Сегодня Ан: {}\n".format(folder_counts.get("Ан", 0))
+    result += "Сегодня Та: {}\n".format(folder_counts.get("Та", 0))
+    result += "Сегодня Ве: {}\n\n".format(folder_counts.get("Ве", 0))
 
     total_in_folders = sum(folder_counts.values()) - folder_counts["Нет папки"]
     result += "Всего в папках: {}\n\n".format(total_in_folders)
