@@ -59,15 +59,8 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
         ''' Не должно быть реализовано, так как есть связь многие ко многим '''
         raise NotImplementedError
 
-    async def update_one(self, data: ShiftSimple) -> None:
-        # stmt = (
-        #     select(self._model)
-        #     .filter_by(date=data.date)
-        #     .values(**data.model_dump(exclude={'managers'}))
-        # )
-        # await self.session.execute(stmt)
+    async def update_one(self, data: ShiftSimple) -> None:  # TODO: Нужно ли реализовывать?
         ...
 
-    async def delete_one(self, id_: int) -> None:
-        stmt = update(self._model).filter_by(id=id_).values(is_deleted=True)
-        await self.session.execute(stmt)
+    async def delete_one(self, id_: int) -> None:  # TODO: Нужно ли реализовывать?
+        ...

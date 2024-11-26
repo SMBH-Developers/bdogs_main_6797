@@ -1,17 +1,27 @@
-from pyrogram.raw.types import DialogFilter
-from pyrogram import raw, errors
-from src.logic.telegram.folder_managment import DailyFoldersManagerInterface, DialogManagerInterface, FolderUtilsInterface
-from loguru import logger
-from pyrogram import Client
+from datetime import date
+from itertools import product
+from typing import Callable, Literal
 
-from src.uow.base import BaseUowInterface
+from pyrogram.raw.types import DialogFilter
+from loguru import logger
+from pyrogram import raw, errors
+from pyrogram import Client
+from src.logic.telegram.folder_managment import (
+    DailyFoldersManagerInterface,
+    DialogManagerInterface,
+    FolderUtilsInterface
+    )
+from src.utils.constants import FolderDay
+from version.v1.uow import UowV1
+from version.v1.schemas.managers_shifts import OutputShift
+
 
 class DailyFoldersManager(DailyFoldersManagerInterface):
     
     def __init__(
         self,
         client: Client,
-        uow: BaseUowInterface,
+        uow: UowV1,
         dialog_manager: DialogManagerInterface,
         folder_utils: FolderUtilsInterface
     ):
@@ -20,33 +30,54 @@ class DailyFoldersManager(DailyFoldersManagerInterface):
         self.dialog_manager = dialog_manager
         self.folder_utils = folder_utils
     
-    async def _get_daily_folders_titles(self) -> set[str]:
+    async def _get_daily_folders_titles(
+        self,
+        *,
+        day: Literal['today', 'base', 'all'] = 'all'
+    ) -> set[str]:
         '''
-        Example:
-            {'Сегодня Ан', 'Сегодня Ве', 'Сегодня Ка', 'Сегодня Ек', 'Сегодня Ек2', 'Сегодня Эл', 'Сегодня Та', 'База Ан', 'База Ве', 'База Ка', 'База Ек', 'База Ек2', 'База Эл', 'База Та'}
+        Returns:
+            {
+                'Сегодня Ан', 'Сегодня Ве', 'Сегодня Ка', 'Сегодня Ек', 'Сегодня Ек2',
+                'Сегодня Эл', 'Сегодня Та', 'База Ан', 'База Ве', 'База Ка', 'База Ек',
+                'База Ек2', 'База Эл', 'База Та'
+            }
         '''
+        folders_days = FolderDay[day].value
         async with self.uow as session:
-            managers = await db.get_managers_today()
-            managers_default = await db.get_managers_list()
-            folders_categories = managers.split(" ") if managers else managers_default
-            folders_days = ['Сегодня', 'База']
-            folders_titles = {f'{folder_day} {folder_category}' for folder_day in folders_days
-                          for folder_category in folders_categories
-                          }
+            shift: OutputShift = await session.shift.fetch_one(
+                date_=date.today(),
+                is_deleted=False
+            )
+            await session.commit()
+                
+            folders_titles = {
+                f'{folder_day} {manager.prefix_name}'
+                for folder_day, manager in product(folders_days, shift.managers)
+        }
         return folders_titles
+    
+    def _folders_filters(self, folders_titles: set[str]) -> Callable[[DialogFilter], bool]:
+        def is_folder_title(folder: DialogFilter) -> bool:
+            return hasattr(folder, 'title') and folder.title in folders_titles
+        return is_folder_title
     
     async def get_daily_folders(self) -> list[DialogFilter]:
         folders_titles = await self._get_daily_folders_titles()
 
         # Getting necessary folders
-        folders_filters = [lambda folder: hasattr(folder, 'title') and folder.title in folders_titles]
-        folders = await self.dialog_manager.get_dialog_filters(lambda folder: any([filter_(folder) for filter_ in folders_filters]))
+        folders = await self.dialog_manager.get_dialog_filters(
+            self.client,
+            self._folders_filters(folders_titles)
+        )
         return folders
     
     async def get_today_folders(self) -> list[DialogFilter]:
-        managers_today: list[] = await db.get_managers_today()
-        titles = [f'Сегодня {category}' for category in managers]
-        folders = await self.dialog_manager.get_dialog_filters(lambda folder: hasattr(folder, 'title') and folder.title in titles)
+        managers_titles: set[str] = await self._get_daily_folders_titles(day='today')
+        folders = await self.dialog_manager.get_dialog_filters(
+            self.client,
+            self._folders_filters(managers_titles)
+        )
         return folders
     
     
@@ -62,7 +93,10 @@ class DailyFoldersManager(DailyFoldersManagerInterface):
             # Creating non existing folders
             non_existing_folders_titles = await self._get_daily_folders_titles() - folders_titles
             logger.info(f'FOLDERS | non existing folders titles  -  {folders}')
-            folders.extend([await self.dialog_manager.create_dialog_filter(title) for title in non_existing_folders_titles])
+            folders.extend(
+                await self.dialog_manager.create_dialog_filter(title)
+                for title in non_existing_folders_titles
+            )
 
             grouped_folders = self.folder_utils.group_folders(folders)
             for category, category_folders in grouped_folders.items():
