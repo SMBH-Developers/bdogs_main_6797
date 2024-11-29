@@ -38,8 +38,7 @@ class User(Base):
 class Card(Base):
     __tablename__ = 'cards'
 
-    id: Mapped[int] = mapped_column(BIGINT, autoincrement=True, primary_key=True)
-    card: Mapped[int] = mapped_column(BIGINT)
+    card: Mapped[int] = mapped_column(BIGINT, primary_key=True)
     status: Mapped[str] = mapped_column(String(128), comment='Card like 1234567891234567')
 
 

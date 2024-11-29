@@ -3,7 +3,7 @@ from sqlalchemy import delete, insert
 from src.database._models import Card
 from src.logic.google.google_sheet import GoogleSheetInterface
 from src.repository.cards import CardRepositoryInterface
-from version.v1.schemas import InputCard, OutputCard
+from version.v1.schemas import InputCard, OutputCard, InputCardSheet
 
 
 class CardRepository(CardRepositoryInterface[Card, InputCard, OutputCard]):
@@ -16,7 +16,7 @@ class CardRepository(CardRepositoryInterface[Card, InputCard, OutputCard]):
         worksheet = await google_sheet.get_worksheet()
         
         data = await worksheet.get('A2:B50')
-        cards = self._input_schema.model_validate(
+        cards = InputCardSheet.model_validate(
             dict(
                 cards=data
             )   

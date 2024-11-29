@@ -1,11 +1,16 @@
 from abc import ABC, abstractmethod
+from typing import Literal
 from pyrogram.raw.types import DialogFilter
 
 
 class DailyFoldersManagerInterface(ABC):
     
     @abstractmethod
-    async def get_daily_folders(self) -> list[DialogFilter]:
+    async def get_daily_folders(
+        self,
+        *,
+        day: Literal['today', 'base', 'all'] = 'all'
+    ) -> set[str]:
         raise NotImplementedError
     
     @abstractmethod
@@ -13,5 +18,5 @@ class DailyFoldersManagerInterface(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    async def dispatch_users_via_daily_folders(self):
+    async def send_users_to_daily_folders(self):
         raise NotImplementedError

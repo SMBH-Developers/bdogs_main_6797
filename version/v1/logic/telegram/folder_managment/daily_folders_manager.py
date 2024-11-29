@@ -94,15 +94,18 @@ class DailyFoldersManager(DailyFoldersManagerInterface):
             non_existing_folders_titles = await self._get_daily_folders_titles() - folders_titles
             logger.info(f'FOLDERS | non existing folders titles  -  {folders}')
             folders.extend(
-                await self.dialog_manager.create_dialog_filter(title)
+                await self.dialog_manager.create_dialog_filter(
+                    self.client,
+                    new_folder_id=await self.folder_utils.get_new_folder_id(self.client),
+                    title=title,
+                    users=await self.folder_utils.get_default_users(self.client)
+                )
                 for title in non_existing_folders_titles
             )
 
             grouped_folders = self.folder_utils.group_folders(folders)
             for category, category_folders in grouped_folders.items():
-                # print(f'Папка - {category}\nСодержимое - {category_folders}')
                 total_folder, today_folder = category_folders
-                # print(f'База - {total_folder}\n\nСегодня - {today_folder}\n\n')
 
                 today_folder: DialogFilter
                 total_folder: DialogFilter
@@ -116,8 +119,13 @@ class DailyFoldersManager(DailyFoldersManagerInterface):
                 else:
                     users_to_del_count = 0
                 logger.info(f'FOLDERS | Count users to delete - {users_to_del_count}')
-
-                old_users_to_delete = await db.get_old_users(users_to_del_count, self.folder_utils.extract_ids_from_peers(general_set_total))
+                old_users_ids = self.folder_utils.extract_ids_from_peers(general_set_total)
+                async with self.uow as session:
+                    old_users_to_delete = await session.user.fetch_all(
+                        limit=users_to_del_count,
+                        users=session.user._model.id.in_(old_users_ids)
+                    )
+                    await session.commit()
 
                 logger.info(f'FOLDERS | Start exctract ids from peers')
                 users = (

@@ -1,6 +1,6 @@
 from loguru import logger
 from sqlalchemy import insert, select, update
-from typing import Optional, Type
+from typing import Optional, Type, Union
 
 from src.repository.base import BaseRepositoryInterface, Model, InputSchema, OutputSchema
 
@@ -16,24 +16,33 @@ class BaseRepository(BaseRepositoryInterface[Model, InputSchema, OutputSchema]):
             result = self._output_schema.model_validate(result)
         return result
     
-    async def fetch_all(self, offset: int = 0, limit: int = 1000, **filters) -> Optional[list[OutputSchema]]:
-        stmt = select(self._model).offset(offset).limit(limit).filter_by(**filters)
+    async def fetch_all(
+        self, 
+        offset: int = 0, 
+        limit: int = 1000, 
+        **filters
+    ) -> Optional[list[OutputSchema]]:
+        stmt = select(self._model).filter_by(**filters).offset(offset).limit(limit)
         result = (await self.session.execute(stmt)).scalars().all()
         if result:
             result = [self._output_schema.model_validate(entity) for entity in result]
         return result
 
-    async def insert_one(self, data: InputSchema) -> None:
-        stmt = insert(self._model).values(**data.model_dump()).returning(self._model)
+    async def insert_one(self, data: Union[InputSchema, dict]) -> None:
+        values = data.model_dump() if isinstance(data, InputSchema) else data
+        stmt = insert(self._model).values(**values).returning(self._model)
         result = (await self.session.execute(stmt)).scalar_one()
         return self._output_schema.model_validate(result)
     
-    async def insert_bulk(self, data: list[InputSchema]) -> None:
-        stmt = insert(self._model).values([entity.model_dump() for entity in data])
+    async def insert_bulk(self, data: list[Union[InputSchema, dict]]) -> None:
+        # TODO: Скорее всего не работает
+        values = [entity.model_dump() for entity in data] if isinstance(data[0], InputSchema) else data
+        stmt = insert(self._model).values(values)
         await self.session.execute(stmt)
 
-    async def update_one(self, id_: int, data: InputSchema) -> None:
-        stmt = update(self._model).filter_by(id=id_).values(**data.model_dump())
+    async def update_one(self, id_: int, data: Union[InputSchema, dict]) -> None:
+        values = data.model_dump() if isinstance(data, InputSchema) else data
+        stmt = update(self._model).filter_by(id=id_).values(**values)
         await self.session.execute(stmt)
 
     async def delete_one(self, id_: int) -> None:

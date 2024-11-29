@@ -5,7 +5,7 @@ CardType = Union[int, str]
 StatusType = str
 
 
-class InputCard(BaseModel):
+class InputCardSheet(BaseModel):
     cards: Optional[dict[CardType, StatusType]]
     
     @field_validator('cards')
@@ -14,5 +14,13 @@ class InputCard(BaseModel):
             return {}
         return {(int(k) if isinstance(k, str) else k): val for k, val in v.items()}
 
+class InputCard(BaseModel):
+    card: CardType
+    status: StatusType
+    
+    @field_validator('card')
+    def validate_card(cls, v: CardType) -> CardType:
+        return int(v) if isinstance(v, str) else v
+
 class OutputCard(InputCard):
-    ...
+    id: int

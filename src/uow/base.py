@@ -41,3 +41,4 @@ class BaseUowInterface(
         if exc_type:
             await self.rollback()
         await self.close()
+        self.session = None
