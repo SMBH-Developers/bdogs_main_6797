@@ -11,7 +11,7 @@ OutputFoldersStatistic = TypeVar('OutputFoldersStatistic', bound=BaseModel)
 class FolderStatisticsInterface(Generic[OutputFoldersStatistic], ABC):
     
     @abstractmethod
-    async def get_existing_chats(self, client: Client) -> set[int]:
+    async def get_existing_chats(self) -> set[int]:
         raise NotImplementedError
     
     @abstractmethod

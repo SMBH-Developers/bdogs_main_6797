@@ -26,7 +26,7 @@ class DailyFoldersManager(DailyFoldersManagerInterface):
         folder_utils: FolderUtilsInterface
     ):
         self.client = client
-        self.uow = uow
+        self.uow = uow()
         self.dialog_manager = dialog_manager
         self.folder_utils = folder_utils
     
@@ -67,7 +67,6 @@ class DailyFoldersManager(DailyFoldersManagerInterface):
 
         # Getting necessary folders
         folders = await self.dialog_manager.get_dialog_filters(
-            self.client,
             self._folders_filters(folders_titles)
         )
         return folders
@@ -75,7 +74,6 @@ class DailyFoldersManager(DailyFoldersManagerInterface):
     async def get_today_folders(self) -> list[DialogFilter]:
         managers_titles: set[str] = await self._get_daily_folders_titles(day='today')
         folders = await self.dialog_manager.get_dialog_filters(
-            self.client,
             self._folders_filters(managers_titles)
         )
         return folders
@@ -95,10 +93,9 @@ class DailyFoldersManager(DailyFoldersManagerInterface):
             logger.info(f'FOLDERS | non existing folders titles  -  {folders}')
             folders.extend(
                 await self.dialog_manager.create_dialog_filter(
-                    self.client,
-                    new_folder_id=await self.folder_utils.get_new_folder_id(self.client),
+                    new_folder_id=await self.folder_utils.get_new_folder_id(),
                     title=title,
-                    users=await self.folder_utils.get_default_users(self.client)
+                    users=await self.folder_utils.get_default_users()
                 )
                 for title in non_existing_folders_titles
             )

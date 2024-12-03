@@ -4,10 +4,12 @@ from abc import ABC, abstractmethod
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 from src.repository.base import BaseRepositoryInterface
 from src.repository.cards import CardRepositoryInterface
+from src.repository.shifts import ShiftRepositoryInterface
 
+from loguru import logger
 
 UserRepository = TypeVar("UserRepository", bound=BaseRepositoryInterface)
-ShiftRepository = TypeVar("ShiftRepository", bound=BaseRepositoryInterface)
+ShiftRepository = TypeVar("ShiftRepository", bound=ShiftRepositoryInterface)
 CardRepository = TypeVar("CardRepository", bound=CardRepositoryInterface)
 ManagersRepository = TypeVar("ManagersRepository", bound=BaseRepositoryInterface)
 
@@ -40,5 +42,8 @@ class BaseUowInterface(
     async def __aexit__(self, exc_type, exc_value, traceback):
         if exc_type:
             await self.rollback()
+            logger.error(f"Database operation failed: {exc_value}")
+            logger.debug(f"Exception type: {exc_type}")
+            logger.debug("Traceback:", exc_info=(exc_type, exc_value, traceback))
         await self.close()
         self.session = None

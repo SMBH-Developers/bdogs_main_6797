@@ -62,7 +62,7 @@ class Managers(Base):
     __tablename__ = 'managers_list'
 
     id: Mapped[int] = mapped_column(BIGINT, autoincrement=True, primary_key=True)
-    prefix_name: Mapped[str] = mapped_column(String(16))
+    prefix_name: Mapped[str] = mapped_column(String(16), unique=True)
     
     shifts: Mapped[List['Shift']] = relationship(secondary='managers_shifts', back_populates='managers')
 

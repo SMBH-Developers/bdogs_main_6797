@@ -12,7 +12,7 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
     _output_schema = OutputShift
     _input_schema = ShiftSimple
 
-    
+
     async def fetch_one(self, date_: date, **filters) -> Optional[OutputShift]:
         stmt = (
             select(self._model)
@@ -21,6 +21,7 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
         )
         result = (await self.session.execute(stmt)).unique().scalar_one_or_none()
         return self._output_schema.model_validate(result) if result else None
+    
     
     async def fetch_all(
         self, 
@@ -38,14 +39,15 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
         result = (await self.session.execute(stmt)).unique().scalars().all()
         return [self._output_schema.model_validate(item) for item in result]
 
+    
     async def _get_managers_by_prefixes(self, prefixes: list[str]) -> list[Managers]:
         stmt = (
             select(Managers)
-            .options(load_only(Managers.id))
             .where(Managers.prefix_name.in_(prefixes))
         )
         return (await self.session.execute(stmt)).scalars().all()
 
+    
     async def insert_one(self, data: ShiftSimple) -> None:
         shift = self._model(**data.model_dump(exclude={'managers'}))
         
@@ -55,12 +57,37 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
         
         self.session.add(shift)
     
-    async def insert_bulk(self, data: list[ShiftSimple]) -> None:
-        ''' Не должно быть реализовано, так как есть связь многие ко многим '''
-        raise NotImplementedError
+    
+    async def insert_bulk(self, data: list[dict]) -> None:
+        '''
+        Добавление сразу нескольких смен с менеджерами
+        Note: Менеджеры должны быть в базе данных, так как мы берем их по префиксу
+        '''
+        all_prefixes = [
+            prefix for shift in data for prefix in shift['managers']
+        ]
+        managers_map = {
+            manager.prefix_name: manager 
+            for manager in await self._get_managers_by_prefixes(all_prefixes)
+        }
+    
+        shifts_data = []
+        for shift in data:
+            shift_obj = self._model(**shift)
+            shift_obj.managers = [
+                managers_map[m]
+                for m in shift['managers']
+                if m in managers_map
+            ]
+            
+            shifts_data.append(shift_obj)
+        
+        self.session.add_all(shifts_data)
 
+    
     async def update_one(self, data: ShiftSimple) -> None:  # TODO: Нужно ли реализовывать?
         ...
 
+    
     async def delete_one(self, id_: int) -> None:  # TODO: Нужно ли реализовывать?
         ...

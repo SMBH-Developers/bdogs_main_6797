@@ -1,21 +1,24 @@
 from loguru import logger
-from sqlalchemy import insert, select, update
+from sqlalchemy import insert, select, update, delete
 from typing import Optional, Type, Union
-
+from functools import wraps
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from src.repository.base import BaseRepositoryInterface, Model, InputSchema, OutputSchema
+
 
 class BaseRepository(BaseRepositoryInterface[Model, InputSchema, OutputSchema]):
     _model: Type[Model]
     _output_schema: Type[OutputSchema]
     _input_schema: Type[InputSchema]
     
-    async def fetch_one(self, id_: int, **filters) -> Optional[OutputSchema]:
-        stmt = select(self._model).filter_by(id=id_, **filters)
+    
+    async def fetch_one(self, **filters) -> Optional[OutputSchema]:
+        stmt = select(self._model).filter_by(**filters)
         result = (await self.session.execute(stmt)).scalar_one_or_none()
         if result:
             result = self._output_schema.model_validate(result)
         return result
-    
+
     async def fetch_all(
         self, 
         offset: int = 0, 
@@ -40,11 +43,14 @@ class BaseRepository(BaseRepositoryInterface[Model, InputSchema, OutputSchema]):
         stmt = insert(self._model).values(values)
         await self.session.execute(stmt)
 
-    async def update_one(self, id_: int, data: Union[InputSchema, dict]) -> None:
+    async def update_one(self, *, data: Union[InputSchema, dict], **filters) -> None:
         values = data.model_dump() if isinstance(data, InputSchema) else data
-        stmt = update(self._model).filter_by(id=id_).values(**values)
+        stmt = update(self._model).filter_by(**filters).values(**values)
         await self.session.execute(stmt)
 
-    async def delete_one(self, id_: int) -> None:
-        stmt = update(self._model).filter_by(id=id_).values(is_deleted=True)
+    async def delete_one(self, *, strong: bool = False, **filters) -> None:
+        if not strong:
+            stmt = update(self._model).filter_by(**filters).values(is_deleted=True)
+        else:
+            stmt = delete(self._model).filter_by(**filters)
         await self.session.execute(stmt)

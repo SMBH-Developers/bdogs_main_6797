@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Type, Optional
+from typing import TypeVar, Generic, Type, Optional, Union
 from abc import ABC, abstractmethod
 
 from pydantic import BaseModel
@@ -21,7 +21,7 @@ class BaseRepositoryInterface(Generic[Model, InputSchema, OutputSchema], ABC):
         self.session = session
 
     @abstractmethod
-    async def fetch_one(self, id_: int, **filters) -> Optional[OutputSchema]:
+    async def fetch_one(self, **filters) -> Optional[OutputSchema]:
         raise NotImplementedError
 
     @abstractmethod
@@ -35,17 +35,13 @@ class BaseRepositoryInterface(Generic[Model, InputSchema, OutputSchema], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def insert_bulk(self, data: list[InputSchema]) -> list[OutputSchema]:
+    async def insert_bulk(self, data: list[Union[InputSchema, dict]]) -> list[OutputSchema]:
         raise NotImplementedError
 
     @abstractmethod
-    async def update(self, id_: int, data: InputSchema, **filters) -> OutputSchema:
+    async def update(self, *, data: InputSchema, **filters) -> OutputSchema:
         raise NotImplementedError
 
     @abstractmethod
-    async def delete(self, id_: int, **filters) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    async def is_exists(self, id_: int, **filters) -> bool:
+    async def delete(self, *, strong: bool = False, **filters) -> None:
         raise NotImplementedError

@@ -27,8 +27,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
-developers_ids = [
-    1371617744, # Artem
-    7758453588 # Vlad
-]

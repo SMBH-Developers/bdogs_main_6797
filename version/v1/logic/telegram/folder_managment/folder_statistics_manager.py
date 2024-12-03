@@ -13,21 +13,23 @@ class FolderStatistics(FolderStatisticsInterface[FoldersCategoryStat]):
     def __init__(
         self,
         daily_folders_manager: DailyFoldersManagerInterface,
-        folder_utils: FolderUtilsInterface
+        folder_utils: FolderUtilsInterface,
+        client: Client
     ):
         self.daily_folders_manager = daily_folders_manager
         self.folder_utils = folder_utils
+        self.client = client
     
-    async def get_existing_chats(self, client: Client) -> set[int]:
+    async def get_existing_chats(self) -> set[int]:
         return {
             dialog.chat.id
-            async for dialog in client.get_dialogs()
+            async for dialog in self.client.get_dialogs()
         }
     
-    async def get_folders_statistic(self, client: Client) -> list[FoldersCategoryStat]:
+    async def get_folders_statistic(self) -> list[FoldersCategoryStat]:
         logger.info('Function **get_folders_statistic** started')
         folders = await self.daily_folders_manager.get_daily_folders()
-        existing_chats = await self.get_existing_chats(client=client)
+        existing_chats = await self.get_existing_chats()
         folders_stat = [
             FolderStat(
                 folder.title,

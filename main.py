@@ -1,5 +1,4 @@
 import asyncio
-import aiohttp
 import re
 
 from loguru import logger
@@ -7,18 +6,17 @@ from pyrogram import Client, filters, types, idle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 
-from src.config import settings, client
-from src.config._settings import developers_ids
+from src.config import client
 from src.database import db
 from src.utils import Additional, get_date_by_weekday, extract_card_from_command, get_folder_stats_today, get_name
-from src.services import GoogleDP
-from src.tasks.scheduler_singl import SchedulerSingleton
-from src.tasks.ping.utill import is_last_message_time_read
-from src.tasks.ping import ping
 
-from add_users import parse_users
+from version.v2.tasks.scheduler_singl import SchedulerSingleton
+from version.v2.tasks.ping import ping
+from src.filtres import manager_name
+from bootstrap import bootstrap
 
-google_dp = GoogleDP()
+
+bootstrap_ = bootstrap()
 
 
 async def send_text_with_name(message: types.Message, scheduler: SchedulerSingleton):
@@ -37,14 +35,9 @@ async def send_text_with_name(message: types.Message, scheduler: SchedulerSingle
        scheduler=scheduler
     )
 
-# @client.on_message(filters.chat(developers_ids) & filters.command('test-check-message-read-status'))
-# async def test_chain_ping(_, message: types.Message):
-#     result = await is_last_message_time_read(client, message)
-#     await message.reply(f'Result: {result}')
-
 
 @client.on_message(filters.command('get_statistic') & filters.me)
-async def statistic(_: Client, message: types.Message):
+async def statistic(_: Client, message: types.Message): # TODO: Узнать зачем этот обработчик
     categories_folders_stat = await Additional.get_folders_statistic()
     stat = '\n\n'.join([category_folders.to_text() for category_folders in categories_folders_stat])
     users_without_folder = await db.get_count_without_folder()
@@ -58,77 +51,28 @@ async def statistic_new(_: Client, message: types.Message):
     await client.send_message('me', text=message)
 
 
-@client.on_message(filters.command('update_managers') & filters.me)
+@client.on_message(filters.command('update_managers') & filters.me & manager_name)
 async def add_managers_list(_: Client, message: types.Message):
-    if len(message.command) != 2:
-        return await message.reply('Ошибка: Пожалуйста, укажите две буквы новой папки\nПример: /update_managers Nn')
-
-    manager_name = message.command[1]
-
-    if len(manager_name) != 2:
-        return await message.reply(f'Ошибка: в указанном названии папки {manager_name} должно быть только две буквы')
-
-    await db.update_managers_list(manager_name)
-    await message.reply(f"✅ Папка была добавлена в список")
+    await bootstrap_["add_managers"](message)
 
 
 @client.on_message(filters.command('managers') & filters.me)
 async def managers(_: Client, message: types.Message):
-    weekdays = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
-    managers_default = await db.get_managers_list()
-    available_managers = set(managers_default)
-
-    managers_shifts = {}
-    text = message.text
-
-    try:
-        for weekday in weekdays:
-            weekday_shifts = re.search(fr'{weekday}\s*-\s*(.+)', text, re.IGNORECASE)
-            if weekday_shifts is None:
-                return await client.send_message('me', f"Ошибка! День недели {weekday} не найден")
-            weekday_shifts = weekday_shifts.group(1).strip().split()
-            if not set(weekday_shifts).issubset(available_managers):
-                return await client.send_message('me', f"Ошибка! Доступны только менеджеры: {available_managers}\n"
-                                                       f"Указаны {weekday_shifts} за {weekday}"
-                                                 )
-            managers_shifts[get_date_by_weekday(weekday).date()] = ' '.join(weekday_shifts)
-        await db.set_managers_shifts(managers_shifts)
-        await client.send_message('me', 'Успешно обновил смены!')
-    except Exception as e:
-        logger.exception('ERROR')
-        await client.send_message('me', f'Ошибка! Обратитесь к разработчику\n{e}')
-
+    await bootstrap_["managers"](message)
 
 @client.on_message(filters.chat('me') & filters.command('black'))
 async def black_card(_, message: types.Message):
-    card = await extract_card_from_command(message)
-    if card is None:
-        return
-
-    count = 0
-    await db.update_cards_status(int(card.replace(' ', '')), status='black')
-    await google_dp.insert_card_google_sheet(int(card.replace(' ', '')), status='black')
-
-    async for search_message in client.search_global(card):
-        try:
-            if search_message.chat.type.PRIVATE and search_message.text != f'/black {card}' and search_message.text != f'/white {card}':
-                await search_message.delete()
-                count += 1
-        except Exception as e:
-            logger.error(f'ERROR DELETE CARD | {e}')
-
-    await client.send_message(message.chat.id, f'✅ Карта добавлена в черный список\nВсе удалено по карте - {card}. Кол-во сообщений удалено - {count}')
+    count = await bootstrap_["black_card"](message)
+    await client.send_message(message.chat.id, f'✅ Карта добавлена в черный список\n Кол-во сообщений удалено - {count}')
 
 
 @client.on_message(filters.chat('me') & filters.command('white'))
 async def white_card(_, message: types.Message):
-    card = await extract_card_from_command(message)
-    if card is None:
-        return
-
-    await db.update_cards_status(int(card.replace(' ', '')), status='white')
-    await google_dp.insert_card_google_sheet(int(card.replace(' ', '')), status='white')
-    await client.send_message(message.chat.id, f'✅ Карта удалена из черного списка - {card}')
+    is_success = await bootstrap_["white_card"](message)
+    await client.send_message(
+        message.chat.id,
+        f'✅ Карта удалена из черного списка' if is_success else '❌ Ошибка при удалении карты из черного списка'
+    )
 
 
 @client.on_message(filters.me & (filters.text | filters.caption))

@@ -8,5 +8,3 @@ from src.utils import extract_card_from_command
 
 class BaseOperation(ABC):
     ...
-    
-    

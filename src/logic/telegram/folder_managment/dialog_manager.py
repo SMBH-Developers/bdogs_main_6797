@@ -9,7 +9,6 @@ class DialogManagerInterface(ABC):
     @abstractmethod
     async def get_dialog_filters(
         self,
-        client: Client,
         filter_func: Optional[Callable[[Any], bool]] = None
     ) -> List[DialogFilter | DialogFilterDefault]:
         raise NotImplementedError
@@ -17,7 +16,6 @@ class DialogManagerInterface(ABC):
     @abstractmethod
     async def create_dialog_filter(
         self,
-        client: Client,
         new_folder_id: int,
         title: str,
         users: list[int]

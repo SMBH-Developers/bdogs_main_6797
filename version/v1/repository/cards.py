@@ -7,11 +7,12 @@ from version.v1.schemas import InputCard, OutputCard, InputCardSheet
 
 
 class CardRepository(CardRepositoryInterface[Card, InputCard, OutputCard]):
+    # TODO CardRepositoryInterface не реализует все методы, сейчас ошибка, так как методы реализованны в базовом классе
     _model = Card
     _output_schema = OutputCard
     _input_schema = InputCard
     
-    async def insert_cards_db(self, google_sheet: GoogleSheetInterface) -> None:
+    async def insert_cards_db(self, google_sheet: GoogleSheetInterface) -> None: # TODO: Возможно не нужно будет использовать
         logger.info("GoogleSheet: Started function <insert_cards_db>")
         worksheet = await google_sheet.get_worksheet()
         

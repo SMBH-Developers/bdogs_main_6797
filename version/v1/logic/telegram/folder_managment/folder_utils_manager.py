@@ -10,9 +10,12 @@ from loguru import logger
 
 class FolderUtils(FolderUtilsInterface):
     
+    
+    def __init__(self, client: Client):
+        self.client = client
+    
     async def users_to_peers(
         self,
-        client: Client,
         users_ids: Optional[Sequence[int]],
         *,
         ignore_peer_invalid: bool = False
@@ -20,7 +23,7 @@ class FolderUtils(FolderUtilsInterface):
         peers = []
         for user_id in users_ids:
             try:
-                peers.append(await client.resolve_peer(user_id))
+                peers.append(await self.client.resolve_peer(user_id))
             except errors.PeerIdInvalid:
                 if not ignore_peer_invalid:
                     raise
@@ -55,23 +58,21 @@ class FolderUtils(FolderUtilsInterface):
     
     async def get_default_users(
         self,
-        client: Client,
         users: Optional[Sequence[int]] = tuple()
     ) -> list[InputPeer]:
-        users = await self.users_to_peers(client, users)
+        users = await self.users_to_peers(users)
         if not users:
-            client_id = (await client.get_me()).id
-            users = [await client.resolve_peer(client_id)]
+            client_id = (await self.client.get_me()).id
+            users = [await self.client.resolve_peer(client_id)]
         return users
     
     async def get_new_folder_id(
         self,
-        client: Client,
         *,
         step_id: int = 1
     ) -> int:
         try:
-            folders = await client.invoke(raw.functions.messages.GetDialogFilters())
+            folders = await self.client.invoke(raw.functions.messages.GetDialogFilters())
             valid_ids = [
                 folder.id 
                 for folder in folders 

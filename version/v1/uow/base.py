@@ -18,6 +18,12 @@ class BaseUow(
 ):
     def __init__(self):
         self.__session_factory = async_session
+        
+    def __call__(self):
+        '''
+        Для создания объекта через фабрику
+        '''
+        return BaseUow()
 
     async def __aenter__(self):
         self.session = self.__session_factory()

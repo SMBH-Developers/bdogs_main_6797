@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Optional, Sequence
 from pyrogram.raw.types import DialogFilter
 from pyrogram.raw.base import InputPeer
-from pyrogram import Client
 
 
 class FolderUtilsInterface(ABC):
@@ -28,7 +27,6 @@ class FolderUtilsInterface(ABC):
     @abstractmethod
     async def get_default_users(
         self,
-        client: Client,
         users: Optional[Sequence[int]] = tuple()
     ) -> list[InputPeer]:
         raise NotImplementedError
@@ -36,7 +34,6 @@ class FolderUtilsInterface(ABC):
     @abstractmethod
     async def get_new_folder_id(
         self,
-        client: Client,
         *,
         step_id: int = 1
     ) -> int:
