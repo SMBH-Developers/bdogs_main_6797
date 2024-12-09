@@ -4,10 +4,13 @@ from sqlalchemy import select, insert, update
 from sqlalchemy.orm import selectinload, joinedload, load_only
 
 from .base import BaseRepository
+from src.repository.shifts import ShiftRepositoryInterface
 from src.database._models import Managers, Shift
 from version.v1.schemas.managers_shifts import ShiftSimple, OutputShift
 
+
 class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
+    '''Является реализацией интерфейса ShiftRepositoryInterface'''
     _model = Shift
     _output_schema = OutputShift
     _input_schema = ShiftSimple

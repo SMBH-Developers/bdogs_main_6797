@@ -1,14 +1,16 @@
+from pyrogram import Client
+from loguru import logger
+
+from schemas.telegram.folders import FoldersCategoryStat, FolderStat
 from src.logic.telegram.folder_managment import (
     FolderStatisticsInterface,
     DailyFoldersManagerInterface,
     FolderUtilsInterface
 )
-from schemas.telegram.folders import FoldersCategoryStat, FolderStat
-from pyrogram import Client
-from loguru import logger
 
+from version.v1.logic.telegram.tasks_mexin.statistics import StatisticsMexin
 
-class FolderStatistics(FolderStatisticsInterface[FoldersCategoryStat]):
+class FolderStatistics(FolderStatisticsInterface[FoldersCategoryStat], StatisticsMexin):
     
     def __init__(
         self,
@@ -26,9 +28,9 @@ class FolderStatistics(FolderStatisticsInterface[FoldersCategoryStat]):
             async for dialog in self.client.get_dialogs()
         }
     
-    async def get_folders_statistic(self) -> list[FoldersCategoryStat]:
+    async def get_folders_statistic(self, shift: 'OutputShift') -> list[FoldersCategoryStat]:
         logger.info('Function **get_folders_statistic** started')
-        folders = await self.daily_folders_manager.get_daily_folders()
+        folders = await self.daily_folders_manager.get_daily_folders(shift=shift)
         existing_chats = await self.get_existing_chats()
         folders_stat = [
             FolderStat(

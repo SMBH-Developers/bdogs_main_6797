@@ -3,11 +3,12 @@ from sqlalchemy import delete, insert
 from src.database._models import Card
 from src.logic.google.google_sheet import GoogleSheetInterface
 from src.repository.cards import CardRepositoryInterface
+from .base import BaseRepository
 from version.v1.schemas import InputCard, OutputCard, InputCardSheet
 
 
-class CardRepository(CardRepositoryInterface[Card, InputCard, OutputCard]):
-    # TODO CardRepositoryInterface не реализует все методы, сейчас ошибка, так как методы реализованны в базовом классе
+class CardRepository(BaseRepository[Card, InputCard, OutputCard]):
+    '''Является реализацией интерфейса CardRepositoryInterface'''
     _model = Card
     _output_schema = OutputCard
     _input_schema = InputCard

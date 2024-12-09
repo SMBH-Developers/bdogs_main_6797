@@ -1,8 +1,7 @@
 from functools import wraps
 from loguru import logger
-from apscheduler.jobstores.base import JobLookupError
 
-from src.tasks.scheduler_singl import SchedulerSingleton
+from src.config.scheduler_singl import SchedulerSingleton
 
 def close_job(job):
     @wraps(job)

@@ -39,9 +39,9 @@ class BaseRepositoryInterface(Generic[Model, InputSchema, OutputSchema], ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def update(self, *, data: InputSchema, **filters) -> OutputSchema:
+    async def update_one(self, *, data: InputSchema, **filters) -> OutputSchema:
         raise NotImplementedError
 
     @abstractmethod
-    async def delete(self, *, strong: bool = False, **filters) -> None:
+    async def delete_one(self, *, strong: bool = False, **filters) -> None:
         raise NotImplementedError

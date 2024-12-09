@@ -5,16 +5,15 @@ from loguru import logger
 from sqlalchemy.exc import IntegrityError
 
 from src.operations.base import BaseOperation
-from version.v1.uow import UowV1
-from version.v1.schemas.managers_shifts import ShiftSimple, ManagerSimple
+from src.uow.base import BaseUowInterface
 from src.utils._utils import get_date_by_weekday
 
 
 class ManagersOperation(BaseOperation):
     WEEKDAYS = ["понедельник", "вторник", "среда", "четверг", "пятница", "суббота", "воскресенье"]
     
-    def __init__(self, uow: UowV1, client: Client):
-        self.uow = uow()
+    def __init__(self, uow: BaseUowInterface, client: Client):
+        self.uow: BaseUowInterface = uow()
         self.client = client    
     
     async def __call__(self, message: Message):
@@ -47,10 +46,10 @@ class AddManagersOperation(BaseOperation):
     
     def __init__(
         self,
-        uow: UowV1,
+        uow: BaseUowInterface,
         client: Client
     ):
-        self.uow = uow()
+        self.uow: BaseUowInterface = uow()
         self.client = client 
     
     async def __call__(self, message: Message):

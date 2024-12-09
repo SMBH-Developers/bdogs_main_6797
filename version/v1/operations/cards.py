@@ -1,26 +1,25 @@
+import re
+
 from pyrogram import Client
 from pyrogram.types import Message
 from loguru import logger
 
 from src.logic.google.google_sheet import GoogleSheetInterface
 from src.operations.base import BaseOperation
-from version.v1.uow import UowV1
+from src.uow.base import BaseUowInterface
 from version.v1.schemas import InputCard
 from src.utils import extract_card_from_command
-
-
-
 
 
 class WhiteCardOperation(BaseOperation):
     def __init__(
         self, 
         google_dp: GoogleSheetInterface,
-        uow: UowV1,
+        uow: BaseUowInterface,
         client: Client
     ):
         self.google_dp = google_dp
-        self.uow = uow()
+        self.uow: BaseUowInterface = uow()
         self.client = client
         
     async def __call__(
@@ -71,3 +70,27 @@ class BlackCardOperation(WhiteCardOperation):
                 logger.error(f'ERROR DELETE CARD | {e}')
 
         return count
+
+
+class ModerateCardNumbersOperation(BaseOperation):
+    def __init__(
+        self,
+        uow: BaseUowInterface,
+        client: Client
+    ):
+        self.uow: BaseUowInterface = uow()
+        self.client = client
+
+    async def __call__(self, message: Message):
+        text = message.text if message.text else message.caption
+        search_result = re.search(r'\d{16}', text.replace(' ', ''))
+        if search_result:
+            card = search_result.group()
+            
+            async with self.uow as session:
+                is_exists = await session.card.fetch_one(card=card, status='black')
+                await session.commit()
+                
+            if is_exists:
+                await message.delete()
+                logger.info(f'Delete card - {card}')

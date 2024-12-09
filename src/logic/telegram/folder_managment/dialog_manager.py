@@ -21,4 +21,7 @@ class DialogManagerInterface(ABC):
         users: list[int]
     ) -> DialogFilter:
         raise NotImplementedError
-
+    
+    @abstractmethod
+    async def add_peer_to_filter(self, filter_title: str, peer_id: int) -> None:
+        raise NotImplementedError

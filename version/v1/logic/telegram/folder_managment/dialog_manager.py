@@ -4,6 +4,7 @@ from pyrogram.raw.types import DialogFilter, DialogFilterDefault
 from src.logic.telegram.folder_managment import DialogManagerInterface
 from pyrogram import Client
 from pyrogram import raw, errors
+from loguru import logger
 
 
 class DialogManager(DialogManagerInterface):
@@ -41,3 +42,24 @@ class DialogManager(DialogManagerInterface):
         )
         await self.client.invoke(raw.functions.messages.UpdateDialogFilter(id=folder_filters.id, filter=folder_filters))
         return folder_filters
+    
+    async def add_peer_to_filter(self, filter_title: str, peer_id: int) -> None:
+        peer = await self.client.resolve_peer(peer_id)
+        filters = await self.get_dialog_filters(
+            lambda f: hasattr(f, 'title') and f.title == filter_title
+        )
+        
+        if not filters:
+            await self.create_dialog_filter(filter_title, users=[peer_id])
+        else:
+            dialog_filter = filters[0]
+            if len(dialog_filter.include_peers) == 200:
+                logger.info(f"{filter_title} has limit peers. So user [{peer_id}] wasn't add to filter")
+                return
+            dialog_filter.include_peers.append(peer)
+            await self.client.invoke(
+                raw.functions.messages.UpdateDialogFilter(
+                    id=dialog_filter.id, 
+                    filter=dialog_filter
+                )
+            )

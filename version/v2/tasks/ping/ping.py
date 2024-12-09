@@ -9,7 +9,7 @@ from src.database import db
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .utill import is_last_message_time, is_last_message_time_read, send_ping
 from src.utils import get_name
-from src.tasks import close_job
+from version.v2.tasks.close_job import close_job
 from src.config import client
 
 MockClient = TypeVar('MockClient')

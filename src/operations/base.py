@@ -1,10 +1,22 @@
 from abc import ABC, abstractmethod
-from src.logic.google.google_sheet import GoogleSheetInterface
-from src.uow.base import BaseUowInterface
-from pyrogram import Client
-from pyrogram.types import Message
-
-from src.utils import extract_card_from_command
-
 class BaseOperation(ABC):
-    ...
+    
+    @abstractmethod
+    async def __call__(self, *args, **kwargs):
+        raise NotImplementedError
+
+
+class OperationFactory:
+    def __init__(self):
+        self._operations: dict[str, tuple[type[BaseOperation], dict]] = {}
+    
+    def register(self, key: str, operation_class: type[BaseOperation], dependencies: dict) -> None:
+        if not issubclass(operation_class, BaseOperation):
+            raise ValueError(f"Operation {operation_class.__name__} must inherit from BaseOperation")
+        self._operations[key] = (operation_class, dependencies)
+    
+    def __getitem__(self, key: str) -> BaseOperation:
+        if key not in self._operations:
+            raise KeyError(f"Operation {key} not registered")
+        operation_class, dependencies = self._operations[key]
+        return operation_class(**dependencies)
