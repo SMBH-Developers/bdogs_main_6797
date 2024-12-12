@@ -7,11 +7,22 @@ services:
     restart: unless-stopped
     user: redis
     ports:
-      - 6380:6380
+      - 6380:6379
     volumes:
       - redis-data:/local_storage
       - ./src/config/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: redis-server /usr/local/etc/redis/redis.conf
+
+  app:
+    build:
+      context: .
+      dockerfile: app.dockerfile
+    container_name: bdocs_main_6797
+    restart: unless-stopped
+    ports:
+      - 8000:8000
+    volumes:
+      - .:/app
 
 volumes:
   redis-data:

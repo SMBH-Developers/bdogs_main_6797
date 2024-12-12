@@ -1,7 +1,7 @@
 from pyrogram import Client
 from loguru import logger
 
-from schemas.telegram.folders import FoldersCategoryStat, FolderStat
+from version.v1.schemas.telegram.folders import FoldersCategoryStat, FolderStat
 from src.logic.telegram.folder_managment import (
     FolderStatisticsInterface,
     DailyFoldersManagerInterface,

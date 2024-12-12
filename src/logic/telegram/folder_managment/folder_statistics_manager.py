@@ -8,7 +8,7 @@ from src.logic.telegram.tasks_mexin.statistics import StatisticsMexinInterface
 OutputFoldersStatistic = TypeVar('OutputFoldersStatistic', bound=BaseModel)
 
 
-class FolderStatisticsInterface(Generic[OutputFoldersStatistic], ABC, StatisticsMexinInterface):
+class FolderStatisticsInterface(Generic[OutputFoldersStatistic], StatisticsMexinInterface, ABC):
     
     @abstractmethod
     async def get_existing_chats(self) -> set[int]:

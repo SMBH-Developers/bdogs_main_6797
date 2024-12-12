@@ -16,7 +16,7 @@ class BaseRepository(BaseRepositoryInterface[Model, InputSchema, OutputSchema]):
         stmt = select(self._model).filter_by(**filters)
         result = (await self.session.execute(stmt)).scalar_one_or_none()
         if result:
-            result = self._output_schema.model_validate(result)
+            result = self._output_schema.model_validate(result, from_attributes=True)
         return result
 
     async def fetch_all(
@@ -28,17 +28,16 @@ class BaseRepository(BaseRepositoryInterface[Model, InputSchema, OutputSchema]):
         stmt = select(self._model).filter_by(**filters).offset(offset).limit(limit)
         result = (await self.session.execute(stmt)).scalars().all()
         if result:
-            result = [self._output_schema.model_validate(entity) for entity in result]
+            result = [self._output_schema.model_validate(entity, from_attributes=True) for entity in result]
         return result
 
     async def insert_one(self, data: Union[InputSchema, dict]) -> None:
         values = data.model_dump() if isinstance(data, InputSchema) else data
         stmt = insert(self._model).values(**values).returning(self._model)
         result = (await self.session.execute(stmt)).scalar_one()
-        return self._output_schema.model_validate(result)
+        return self._output_schema.model_validate(result, from_attributes=True)
     
     async def insert_bulk(self, data: list[Union[InputSchema, dict]]) -> None:
-        # TODO: Скорее всего не работает
         values = [entity.model_dump() for entity in data] if isinstance(data[0], InputSchema) else data
         stmt = insert(self._model).values(values)
         await self.session.execute(stmt)

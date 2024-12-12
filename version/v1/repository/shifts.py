@@ -23,7 +23,7 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
             .filter_by(date=date_, **filters)
         )
         result = (await self.session.execute(stmt)).unique().scalar_one_or_none()
-        return self._output_schema.model_validate(result) if result else None
+        return self._output_schema.model_validate(result, from_attributes=True) if result else None
     
     
     async def fetch_all(
@@ -40,7 +40,7 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
             .limit(limit)
         )
         result = (await self.session.execute(stmt)).unique().scalars().all()
-        return [self._output_schema.model_validate(item) for item in result]
+        return [self._output_schema.model_validate(item, from_attributes=True) for item in result]
 
     
     async def _get_managers_by_prefixes(self, prefixes: list[str]) -> list[Managers]:
@@ -76,7 +76,7 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
     
         shifts_data = []
         for shift in data:
-            shift_obj = self._model(**shift)
+            shift_obj = self._model(date=shift['date'])
             shift_obj.managers = [
                 managers_map[m]
                 for m in shift['managers']

@@ -5,7 +5,7 @@ from pyrogram.raw.types import DialogFilter
 from src.logic.telegram.tasks_mexin.daily_folders import DailyFoldersMexinInterface
 
 
-class DailyFoldersManagerInterface(ABC, DailyFoldersMexinInterface):
+class DailyFoldersManagerInterface(DailyFoldersMexinInterface, ABC):
     
     @abstractmethod
     async def get_daily_folders(

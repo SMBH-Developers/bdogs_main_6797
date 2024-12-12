@@ -102,7 +102,7 @@ async def main(scheduler: AsyncIOScheduler):
 if __name__ == '__main__':
     scheduler = SchedulerSingleton()
     try:
-        client.run(main(scheduler=scheduler))
+        client.run()
     finally:
         client.stop()
         scheduler.shutdown()
