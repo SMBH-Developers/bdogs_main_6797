@@ -160,7 +160,7 @@ async def get_folder_stats_today():
     result += "Сегодня Ек2: {}\n".format(folder_counts.get("Ек2", 0))
     result += "Сегодня Ан: {}\n".format(folder_counts.get("Ан", 0))
     result += "Сегодня Та: {}\n".format(folder_counts.get("Та", 0))
-    result += "Сегодня Ве: {}\n\n".format(folder_counts.get("Ве", 0))
+    result += "Сегодня Ве: {}\n".format(folder_counts.get("Ве", 0))
     result += "Сегодня Да: {}\n\n".format(folder_counts.get("Да", 0))
 
     total_in_folders = sum(folder_counts.values()) - folder_counts["Нет папки"]
