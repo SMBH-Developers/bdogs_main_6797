@@ -148,6 +148,7 @@ async def get_folder_stats_today():
     
     for user_id in relevant_dialogs:
         folder = users_with_folder_dict.get(user_id)
+        print(folder, folder == 'Cтас')
         if folder is None:
             folder_counts["Нет папки"] += 1
         else:
