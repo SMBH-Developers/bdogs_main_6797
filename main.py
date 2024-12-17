@@ -155,12 +155,17 @@ async def registration_user(_: Client, message: types.Message):
         folders = await Additional.get_today_folders()
         managers_today = await db.get_managers_today()
         managers_default = ' '.join(await db.get_managers_list())
-        folders = [folder for folder in folders if folder.title[-3:].replace(' ', '') in (managers_today if managers_today is not None else managers_default)]
+        # folder.title[-3:].replace(' ', '')
+        folders = [
+            folder 
+            for folder in folders
+            if folder.title.split()[-1]
+            in (managers_today if managers_today is not None else managers_default)]
         for folder in folders:
             print(f"Папка - {folder.title} Размер - {len(folder.include_peers)}")
         folder = min(folders, key=lambda folder_x: len(folder_x.include_peers))
         await Additional.add_user_to_folder(folder.title, message.from_user.id)
-        await db.set_folder(message.from_user.id, folder.title[-3:].replace(' ', ''))
+        await db.set_folder(message.from_user.id, folder.title.split()[-1])
     else:
         logger.debug(f'[{message.from_user.id}] exists')
 
