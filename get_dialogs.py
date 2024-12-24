@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime
 from typing import Optional  # Исправлен импорт
 from telethon import TelegramClient
-from src.config import settings
+from src.config import settings, client
 import os
 
 api_id = settings.api_id
@@ -101,7 +101,7 @@ async def insert_peer_id_to_session():
     """
     try:
         print("Приступаем к перебору чатов...")
-        app = settings.get_client()
+        app = client
         async with app:
 
             async for _ in app.get_dialogs():
