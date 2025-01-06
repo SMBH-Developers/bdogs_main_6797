@@ -1,18 +1,21 @@
-from pydantic import PostgresDsn, Field
+from pydantic import PostgresDsn, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from typing_extensions import Annotated
 from typing import Literal, Any
+from json import loads
 
+from src.utils.constants import ENV_FILE
 class Settings(BaseSettings):
     MODE: Literal['TEST', 'PROD'] = Field(default='TEST') # TEST or PROD
     name: str
     api_id: int
     api_hash: str
     phone_number: str
-    GOOGLE_CREDS: dict[str, Any]
+    # GOOGLE_CREDS: Annotated[dict, Any]
 
     postgres_dsn: PostgresDsn
 
-    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8', extra='ignore')
+    model_config = SettingsConfigDict(env_file=ENV_FILE, env_file_encoding='utf-8', extra='ignore')
     
     # Redis
     REDIS_HOST_NAME: str = Field(default='redis')
@@ -23,7 +26,7 @@ class Settings(BaseSettings):
     
     @property
     def redis_uri(self) -> str:
-        return f'redis://{self.REDIS_HOST_NAME}:6379'
+        return f'redis://{self.REDIS_HOST_NAME}:{self.REDIS_PORT}'
 
 
 settings = Settings()

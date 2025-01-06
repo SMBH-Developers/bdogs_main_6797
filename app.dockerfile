@@ -1,23 +1,24 @@
-FROM python:3.12.3-slim
+FROM python:3.12-slim
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+WORKDIR /app/
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        gcc \
-        libffi-dev \
-        libpq-dev \
+ENV INSTALL_DEV=true
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir poetry
+RUN pip install poetry
 
-WORKDIR /app
-
-COPY poetry.lock pyproject.toml ./
-RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
-
+ENV POETRY_VIRTUALENVS_CREATE=false
+ENV POETRY_VIRTUALENVS_IN_PROJECT=false
+ENV POETRY_PYTHON=/usr/local/bin/python
 COPY . .
+
+RUN poetry lock
+RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; else poetry install --no-root --no-dev ; fi"
+
+# Установка необходимых пакетов для сборки
 
 CMD ["poetry", "run", "python", "main.py"]

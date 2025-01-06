@@ -4,12 +4,13 @@ services:
       context: .
       dockerfile: redis.dockerfile
     container_name: redis_bot_app
+    privileged: true
     restart: unless-stopped
     user: redis
     ports:
       - 6380:6379
     volumes:
-      - redis-data:/local_storage
+      - ./local_storage:/local_storage
       - ./src/config/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: redis-server /usr/local/etc/redis/redis.conf
 
@@ -18,17 +19,18 @@ services:
       context: .
       dockerfile: app.dockerfile
     container_name: bdocs_main_6797
+    env_file:
+      - .env
     restart: unless-stopped
-    ports:
-      - 8000:8000
     volumes:
       - .:/app
+    depends_on:
+      - redis
 
-volumes:
-  redis-data:
-    driver: local
-    driver_opts:
-      type: none
-      device: ./local_storage
-      o: bind
-  
+# volumes:
+#   redis-data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: ./local_storage
+#       o: bind

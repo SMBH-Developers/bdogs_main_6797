@@ -10,7 +10,7 @@ from version.v1.tasks.daily import (
     send_folders_statistic_new,
     dispatch_users_via_daily_folders
 )
-
+from loguru import logger
 
 @client.on_message(filters.command('get_statistic') & filters.me)
 async def statistic(_: Client, message: types.Message): # TODO: Узнать зачем этот обработчик
@@ -60,6 +60,7 @@ async def registration_user(_: Client, message: types.Message):
 
 async def main(scheduler: AsyncIOScheduler):
     await client.start()
+    logger.info('Client started')
     # managers_today = await db.get_managers_today()
     # print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
     # asyncio.create_task(parse_users())
@@ -102,7 +103,7 @@ async def main(scheduler: AsyncIOScheduler):
 if __name__ == '__main__':
     scheduler = SchedulerSingleton()
     try:
-        client.run()
+        client.run(main(scheduler))
     finally:
         client.stop()
         scheduler.shutdown()

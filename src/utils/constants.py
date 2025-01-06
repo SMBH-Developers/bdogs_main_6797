@@ -1,8 +1,7 @@
 from pathlib import Path
 from enum import Enum
 
-BASE_DIR = Path(__file__).parent.parent
-
+BASE_DIR = Path(__file__).parent.parent.parent
 ENV_FILE = BASE_DIR / '.env'
 DATA_DIR = BASE_DIR / 'data'
 
