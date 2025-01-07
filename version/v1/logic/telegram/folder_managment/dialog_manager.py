@@ -1,7 +1,7 @@
 from typing import Any, Callable, List, Optional
 
 from pyrogram.raw.types import DialogFilter, DialogFilterDefault
-from src.logic.telegram.folder_managment import DialogManagerInterface
+from src.logic.telegram.folder_managment import DialogManagerInterface, FolderUtilsInterface
 from pyrogram import Client
 from pyrogram import raw, errors
 from loguru import logger
@@ -9,8 +9,13 @@ from loguru import logger
 
 class DialogManager(DialogManagerInterface):
     
-    def __init__(self, client: Client):
+    def __init__(
+        self,
+        client: Client,
+        folder_utils: FolderUtilsInterface
+    ):
         self.client = client
+        self.folder_utils = folder_utils
     
     async def get_dialog_filters(
         self,
@@ -50,7 +55,11 @@ class DialogManager(DialogManagerInterface):
         )
         
         if not filters:
-            await self.create_dialog_filter(filter_title, users=[peer_id])
+            await self.create_dialog_filter(
+                new_folder_id=await self.folder_utils.get_new_folder_id(),
+                title=filter_title,
+                users=[peer_id]
+                )
         else:
             dialog_filter = filters[0]
             if len(dialog_filter.include_peers) == 200:

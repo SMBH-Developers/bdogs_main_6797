@@ -34,7 +34,8 @@ async def ping(
                 'user_id': user_id,
                 'mock_client': mock_client,
                 'message': message,
-                'job_id': job_id
+                'job_id': job_id,
+                'created_at': datetime.now().timestamp()
             },
             id=job_id,
             replace_existing=True,

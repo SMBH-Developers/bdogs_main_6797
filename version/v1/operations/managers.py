@@ -35,10 +35,10 @@ class ManagersOperation(BaseOperation):
             async with self.uow as session:
                 await session.shift.insert_bulk(insert_data)
                 await session.commit()
-                
+            logger.info('SUCCESS UPDATE SHIFTS')
             await self.client.send_message('me', 'Успешно обновил смены!')
         except Exception as e:
-            logger.exception('ERROR')
+            logger.exception(f'ERROR: {e}')
             await self.client.send_message('me', 'Ошибка! Обратитесь к разработчику')
 
 

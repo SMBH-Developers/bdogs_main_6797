@@ -18,6 +18,6 @@ class FoldersCategoryStat(BaseModel):
 
     def to_text(self) -> str:
         stat = '\n'.join(folder_stat.to_text() for folder_stat in self.folders_stat)
-        stat += f'\n\nВсего: {self.total_count}'
+        # stat += f'\n\nВсего: {self.total_count}'
 
         return stat

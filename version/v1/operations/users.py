@@ -35,7 +35,7 @@ class RegisterUserOperation(BaseOperation):
         self.daily_folders_manager: DailyFoldersManagerInterface = all_managers.daily
         self.dialog_manager: DialogManagerInterface = all_managers.dialog
         
-    async def _send_text_with_name(self, message: Message):
+    async def _send_text_with_name(self, message: Message, session: BaseUowInterface):
         name = await self.get_name_function(message.from_user.id)
         await asyncio.sleep(10)
         await self.client.send_message(message.from_user.id, text=f'Здравствуйте, {name}! Меня зовут Раяна! ☀️' if name else 'Здравствуйте! Меня зовут Раяна! ☀️')
@@ -44,9 +44,8 @@ class RegisterUserOperation(BaseOperation):
         await self.client.send_photo(message.from_user.id, photo='data/files/start.jpg', caption=text)
         self_message = await self.client.send_message(message.from_user.id, text=f'{name + ", Вы" if name else "Вы"} желаете пройти у меня полную диагностику чакр и получить свой персональный разбор, верно?')
         try:
-            async with self.uow as session:
-                await session.user.update_one(data={'get_message': True}, id=message.from_user.id)
-                await session.commit()
+            await session.user.update_one(data={'get_message': True}, id=message.from_user.id)
+            await session.commit()
                 
             await self.ping_function(
                 user_id=message.from_user.id,
@@ -64,32 +63,31 @@ class RegisterUserOperation(BaseOperation):
             if not await user_session.fetch_one(id=message.from_user.id):
                 await user_session.insert_one(data={'id': message.from_user.id})
                 await session.commit()
-                await session.close()
-                await self._send_text_with_name(message)
+                await self._send_text_with_name(message, session)
                 return
             
-            elif not await user_session.fetch_one(id=message.from_user.id, get_message=True):
+            elif await user_session.fetch_one(id=message.from_user.id, get_message=True, folder=None):
                 shift_today = await session.shift.fetch_one(
                     date_=date.today(),
                     is_deleted=False
                 )
+                logger.debug(f'shift_today: {shift_today}')
                 folders = await self.daily_folders_manager.get_today_folders(shift=shift_today)
                 await session.commit()
                 managers_today = [manager.prefix_name for manager in shift_today.managers]
                 folders = [
                     folder for folder in folders
-                    if folder.title[-3:].replace(' ', '') in managers_today
+                    if folder.title.split()[-1] in managers_today
                     and logger.info(f"Папка - {folder.title} Размер - {len(folder.include_peers)}")
                     or True
                 ] # хитрость логирования
                 
                 folder = min(folders, key=lambda folder_x: len(folder_x.include_peers))
                 await self.dialog_manager.add_peer_to_filter(folder.title, message.from_user.id)
-                await user_session.update_one(data={'folder': folder.title[-3:].replace(' ', '')}, id=message.from_user.id)
+                await user_session.update_one(data={'folder': folder.title.split()[-1]}, id=message.from_user.id)
                 await session.commit()
                 return
             
             else:
-                await session.close()
                 logger.debug(f'[{message.from_user.id}] exists')
                 return

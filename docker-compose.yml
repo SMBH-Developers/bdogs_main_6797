@@ -4,15 +4,15 @@ services:
       context: .
       dockerfile: redis.dockerfile
     container_name: redis_bot_app
-    privileged: true
     restart: unless-stopped
     user: redis
     ports:
       - 6380:6379
     volumes:
-      - ./local_storage:/local_storage
+      - redis_data:/data
       - ./src/config/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - app_network
 
   app:
     build:
@@ -26,11 +26,12 @@ services:
       - .:/app
     depends_on:
       - redis
+    networks:
+      - app_network
 
-# volumes:
-#   redis-data:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: ./local_storage
-#       o: bind
+volumes:
+  redis_data:
+
+networks:
+  app_network:
+    external: true

@@ -23,7 +23,7 @@ async def statistic_new(_: Client, message: types.Message):
     await bootstrap_["statistic_new"]()
 
 
-@client.on_message(filters.command('update_managers') & filters.me & manager_name)
+@client.on_message(filters.command('update_managers') & filters.me) # "& manager_name" (проверяет два ли символа после команды)
 async def add_managers_list(_: Client, message: types.Message):
     await bootstrap_["add_managers"](message)
 

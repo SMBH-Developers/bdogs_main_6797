@@ -34,8 +34,8 @@ class FolderStatistics(FolderStatisticsInterface[FoldersCategoryStat], Statistic
         existing_chats = await self.get_existing_chats()
         folders_stat = [
             FolderStat(
-                folder.title,
-                len(self.folder_utils.extract_ids_from_peers(folder.include_peers) & existing_chats)
+                folder_title=folder.title,
+                peers_len=len(self.folder_utils.extract_ids_from_peers(folder.include_peers) & existing_chats)
             )
             for folder in folders
         ]
@@ -46,7 +46,8 @@ class FolderStatistics(FolderStatisticsInterface[FoldersCategoryStat], Statistic
             folder_category = folder.folder_title.split()[0]
             folders_categories[folder_category].append(folder)
         categories_stat = [
-            FoldersCategoryStat(folders_by_category) for folders_by_category in folders_categories.values()
+            FoldersCategoryStat(folders_stat=folders_by_category)
+            for folders_by_category in folders_categories.values()
         ]
 
         return categories_stat

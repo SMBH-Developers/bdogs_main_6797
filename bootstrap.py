@@ -45,7 +45,7 @@ def bootstrap() -> OperationFactory:
         stats=FolderStatistics,
         dialog=DialogManager,
         utils=FolderUtils,
-        dependencies=dependencies
+        **dependencies
     )
     
     scheduler = SchedulerSingleton()

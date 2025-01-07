@@ -5,6 +5,7 @@ from .daily_folders_manager import DailyFoldersManagerInterface
 from .folder_statistics_manager import FolderStatisticsInterface
 from .folder_utils_manager import FolderUtilsInterface
 from .dialog_manager import DialogManagerInterface
+from loguru import logger
 
 
 T = TypeVar('T')
@@ -27,12 +28,17 @@ class TelegramFolderManager(Generic[T]):
     
     def __inject_dependencies(self, manager: Type[T], dependencies: Dict[str, Any]) -> Callable[[], T]:
         params = inspect.signature(manager).parameters
-        deps = {
-            name: dependency.manager() if isinstance(dependency, TelegramFolderManager) else dependency
-            for name, dependency in dependencies.items()
-            if name in params
-        }
-        return lambda: manager(**deps)
+        
+        def create_instance():
+            deps = {
+                name: dependency.manager() if isinstance(dependency, TelegramFolderManager) else dependency
+                for name, dependency in dependencies.items()
+                if name in params
+            }
+            logger.debug(f"Dependencies: {deps}")
+            return manager(**deps)
+        
+        return create_instance
     
     @property
     def manager(self) -> ManagerFactory[T]:
@@ -61,23 +67,24 @@ class AllManagersFactoryInterface(
         utils: Type[UtilsInterface],
         **dependencies: Any
     ):
-        self._dialog = TelegramFolderManager[DialogInterface](
-            dialog,
-            **dependencies
-        )
         self._utils = TelegramFolderManager[UtilsInterface](
             utils,
             **dependencies
         )
+        self._dialog = TelegramFolderManager[DialogInterface](
+            dialog,
+            folder_utils=self._utils,
+            **dependencies
+        )
         self._daily = TelegramFolderManager[DailyInterface](
             daily,
-            utils=self._utils,
-            dialog=self._dialog,
+            folder_utils=self._utils,
+            dialog_manager=self._dialog,
             **dependencies
         )
         self._stats = TelegramFolderManager[StatsInterface](
             stats,
-            daily=self._daily,
-            utils=self._utils,
+            daily_folders_manager=self._daily,
+            folder_utils=self._utils,
             **dependencies
         )

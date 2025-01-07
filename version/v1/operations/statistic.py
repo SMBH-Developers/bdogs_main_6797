@@ -28,8 +28,11 @@ class StatisticOperation(BaseOperation):
             await session.commit()
         
         categories_folders_stat = await self.logic.get_folders_statistic(shift=shift)
-        stat = '\n\n'.join([category_folders.to_text() for category_folders in categories_folders_stat])
-        await self.client.send_message('me', text=stat+f'\n\nПользователей без папки: {users_without_folder}')       
+        # '\n\n'.join()
+        stat, total_count = zip(*[(category_folders.to_text(), category_folders.total_count) for category_folders in categories_folders_stat])
+        result = '\n\n'.join(stat)
+        result += f'Всего: {sum(total_count)}'
+        await self.client.send_message('me', text=result+f'\n\nПользователей без папки: {users_without_folder}')       
         
         
 class StatisticOperationNew(BaseOperation):

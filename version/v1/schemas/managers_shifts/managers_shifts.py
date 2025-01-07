@@ -43,4 +43,4 @@ class OutputShift(ShiftSimple):
 class OutputManager(ManagerBase):
     """Полная схема менеджера со сменами"""
     id: int
-    shifts: Optional[List['ShiftSimple']] = []
+    # shifts: Optional[List['ShiftSimple']] = []

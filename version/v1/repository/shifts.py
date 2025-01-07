@@ -1,12 +1,13 @@
 from typing import Optional, List
 from datetime import date
 from sqlalchemy import select, insert, update
-from sqlalchemy.orm import selectinload, joinedload, load_only
+from sqlalchemy.orm import selectinload, joinedload, load_only, contains_eager
 
 from .base import BaseRepository
 from src.repository.shifts import ShiftRepositoryInterface
 from src.database._models import Managers, Shift
 from version.v1.schemas.managers_shifts import ShiftSimple, OutputShift
+from loguru import logger
 
 
 class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
@@ -19,8 +20,10 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
     async def fetch_one(self, date_: date, **filters) -> Optional[OutputShift]:
         stmt = (
             select(self._model)
-            .options(joinedload(self._model.managers))
-            .filter_by(date=date_, **filters)
+            .outerjoin(self._model.managers)  # используем LEFT JOIN (outerjoin)
+            .options(contains_eager(self._model.managers))  # загружаем связанные данные
+            .where(self._model.date == date_)
+            .filter_by(**filters)
         )
         result = (await self.session.execute(stmt)).unique().scalar_one_or_none()
         return self._output_schema.model_validate(result, from_attributes=True) if result else None
@@ -28,13 +31,14 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
     
     async def fetch_all(
         self, 
-        offset: int = 0, 
+        offset: int = 0,
         limit: int = 1000, 
         **filters
     ) -> List[OutputShift]:
         stmt = (
             select(self._model)
-            .options(selectinload(self._model.managers))
+            .outerjoin(self._model.managers)  # LEFT JOIN с таблицей managers
+            .options(contains_eager(self._model.managers))  # загружаем связанные данные из JOIN
             .filter_by(**filters)
             .offset(offset)
             .limit(limit)

@@ -3,6 +3,7 @@ from sqlalchemy import insert, select, update, delete
 from typing import Optional, Type, Union
 from functools import wraps
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from pydantic import BaseModel
 from src.repository.base import BaseRepositoryInterface, Model, InputSchema, OutputSchema
 
 
@@ -32,18 +33,18 @@ class BaseRepository(BaseRepositoryInterface[Model, InputSchema, OutputSchema]):
         return result
 
     async def insert_one(self, data: Union[InputSchema, dict]) -> None:
-        values = data.model_dump() if isinstance(data, InputSchema) else data
+        values = data.model_dump() if isinstance(data, BaseModel) else data
         stmt = insert(self._model).values(**values).returning(self._model)
         result = (await self.session.execute(stmt)).scalar_one()
         return self._output_schema.model_validate(result, from_attributes=True)
     
     async def insert_bulk(self, data: list[Union[InputSchema, dict]]) -> None:
-        values = [entity.model_dump() for entity in data] if isinstance(data[0], InputSchema) else data
+        values = [entity.model_dump() for entity in data] if isinstance(data[0], BaseModel) else data
         stmt = insert(self._model).values(values)
         await self.session.execute(stmt)
 
     async def update_one(self, *, data: Union[InputSchema, dict], **filters) -> None:
-        values = data.model_dump() if isinstance(data, InputSchema) else data
+        values = data.model_dump() if isinstance(data, BaseModel) else data
         stmt = update(self._model).filter_by(**filters).values(**values)
         await self.session.execute(stmt)
 
