@@ -1,11 +1,12 @@
 from typing import Optional, List
 from datetime import date
-from sqlalchemy import select, insert, update
+from sqlalchemy import select, insert, update, delete
 from sqlalchemy.orm import selectinload, joinedload, load_only, contains_eager
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from .base import BaseRepository
 from src.repository.shifts import ShiftRepositoryInterface
-from src.database._models import Managers, Shift
+from src.database._models import Managers, Shift, ManagersShift
 from version.v1.schemas.managers_shifts import ShiftSimple, OutputShift
 from loguru import logger
 
@@ -67,29 +68,47 @@ class ShiftsRepository(BaseRepository[Shift, ShiftSimple, OutputShift]):
     
     async def insert_bulk(self, data: list[dict]) -> None:
         '''
-        Добавление сразу нескольких смен с менеджерами
+        Добавление или обновление нескольких смен с менеджерами
         Note: Менеджеры должны быть в базе данных, так как мы берем их по префиксу
         '''
+        # Получаем всех менеджеров
         all_prefixes = [
             prefix for shift in data for prefix in shift['managers']
         ]
-        managers_map = {
-            manager.prefix_name: manager 
-            for manager in await self._get_managers_by_prefixes(all_prefixes)
-        }
-    
-        shifts_data = []
-        for shift in data:
-            shift_obj = self._model(date=shift['date'])
-            shift_obj.managers = [
+        managers = await self._get_managers_by_prefixes(all_prefixes)
+        managers_map = {manager.prefix_name: manager.id for manager in managers}
+
+        # Подготавливаем данные для вставки/обновления
+        for shift_data in data:
+            # Создаем или обновляем смену
+            stmt = pg_insert(self._model).values(date=shift_data['date'])
+            stmt = stmt.on_conflict_do_nothing(constraint='shift_date_key')
+            await self.session.execute(stmt)
+
+            # Получаем ID смены
+            shift_result = await self.session.execute(
+                select(self._model.id).where(self._model.date == shift_data['date'])
+            )
+            shift_id = shift_result.scalar_one()
+
+            # Удаляем старые связи
+            await self.session.execute(
+                delete(ManagersShift).where(ManagersShift.shift_id == shift_id)
+            )
+
+            # Создаем новые связи
+            manager_ids = [
                 managers_map[m]
-                for m in shift['managers']
+                for m in shift_data['managers']
                 if m in managers_map
             ]
-            
-            shifts_data.append(shift_obj)
-        
-        self.session.add_all(shifts_data)
+            if manager_ids:
+                await self.session.execute(
+                    insert(ManagersShift).values([
+                        {"shift_id": shift_id, "manager_id": manager_id}
+                        for manager_id in manager_ids
+                    ])
+                )
 
     
     async def update_one(self, data: ShiftSimple) -> None:  # TODO: Нужно ли реализовывать?

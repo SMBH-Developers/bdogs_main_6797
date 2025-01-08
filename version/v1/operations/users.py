@@ -57,7 +57,6 @@ class RegisterUserOperation(BaseOperation):
         
     
     async def __call__(self, message: Message):
-        logger.debug(f'[{message.from_user.id}] sent message')
         async with self.uow as session:
             user_session = session.user
             if not await user_session.fetch_one(id=message.from_user.id):

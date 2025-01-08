@@ -23,4 +23,4 @@ class InputCard(BaseModel):
         return int(v) if isinstance(v, str) else v
 
 class OutputCard(InputCard):
-    id: int
+    ...

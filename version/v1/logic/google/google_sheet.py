@@ -34,7 +34,6 @@ class GoogleSheet:
   
     async def insert_card_google_sheet(self, card: int, status: str) -> None:
         worksheet = await self.get_worksheet()
-
         cell = await worksheet.find(str(card))
         if cell:
             row = cell.row
@@ -68,5 +67,3 @@ class GoogleSheet:
     #                 await session.commit()
     #         except Exception as e:
     #             logger.error(f"GoogleSheet: Error inserting cards to database: {e}")
-        
-

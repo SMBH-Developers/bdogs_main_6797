@@ -36,7 +36,11 @@ async def managers(_: Client, message: types.Message):
 @client.on_message(filters.chat('me') & filters.command('black'))
 async def black_card(_, message: types.Message):
     count = await bootstrap_["black_card"](message)
-    await client.send_message(message.chat.id, f'✅ Карта добавлена в черный список\n Кол-во сообщений удалено - {count}')
+    await client.send_message(
+        message.chat.id,
+        f'✅ Карта добавлена в черный список\n Кол-во сообщений удалено - {count}'
+        if count is not None else '❌ Ошибка при добавлении карты в черный список'
+        )
 
 
 @client.on_message(filters.chat('me') & filters.command('white'))
@@ -64,36 +68,36 @@ async def main(scheduler: AsyncIOScheduler):
     # managers_today = await db.get_managers_today()
     # print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
     # asyncio.create_task(parse_users())
-    scheduler.add_job(
-        trigger='cron',
-        hour='23',
-        minute='56',
-        func=send_folders_statistic,
-        replace_existing=True,
-        misfire_grace_time=120,
-        coalesce=True,
-        id='send_folders_statistic'
-    )
-    scheduler.add_job(
-        trigger='cron',
-        hour='23',
-        minute='50',
-        func=send_folders_statistic_new,
-        replace_existing=True,
-        misfire_grace_time=120,
-        coalesce=True,
-        id='send_folders_statistic_new'
-    )
-    scheduler.add_job(
-        trigger='cron',
-        hour='00',
-        minute='00',
-        func=dispatch_users_via_daily_folders,
-        replace_existing=True,
-        misfire_grace_time=120,
-        coalesce=True,
-        id='dispatch_users_via_daily_folders'
-    )
+    # scheduler.add_job(
+    #     trigger='cron',
+    #     hour='15',
+    #     minute='56',
+    #     func=send_folders_statistic,
+    #     replace_existing=True,
+    #     misfire_grace_time=120,
+    #     coalesce=True,
+    #     id='send_folders_statistic'
+    # )
+    # scheduler.add_job(
+    #     trigger='cron',
+    #     hour='15',
+    #     minute='57',
+    #     func=send_folders_statistic_new,
+    #     replace_existing=True,
+    #     misfire_grace_time=120,
+    #     coalesce=True,
+    #     id='send_folders_statistic_new'
+    # )
+    # scheduler.add_job(
+    #     trigger='cron',
+    #     hour='16',
+    #     minute='12',
+    #     func=dispatch_users_via_daily_folders,
+    #     replace_existing=True,
+    #     misfire_grace_time=120,
+    #     coalesce=True,
+    #     id='dispatch_users_via_daily_folders'
+    # )
     # scheduler.add_job(trigger='cron', minute='*/10', func=google_dp.insert_cards_db)
     scheduler.start()
 

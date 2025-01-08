@@ -34,19 +34,19 @@ class WhiteCardOperation(BaseOperation):
 
         input_card = InputCard(card=card.replace(' ', ''), status=status)
         
-        try:
-            async with self.uow as session:
-                is_exists = await session.card.fetch_one(card=input_card.card, status=input_card.status)
-            
-            if is_exists:
-                await session.card.update_one(data=input_card, card=input_card.card, status=input_card.status)
-            else:
-                await session.card.insert_one(input_card)
+        async with self.uow as session:
+            try:
+                is_exists = await session.card.fetch_one(card=input_card.card)
                 
-            await session.commit()
-        except Exception as e:
-            logger.info(f'white_card not success: {e}')
-            return False
+                if is_exists:
+                    await session.card.update_one(data=input_card)
+                else:
+                    await session.card.insert_one(input_card)
+                    
+                await session.commit()
+            except Exception as e:
+                logger.info(f'white_card not success: {e}')
+                return False
         try:
             await self.google_dp.insert_card_google_sheet(input_card.card, input_card.status)
         except Exception as e:
@@ -60,6 +60,8 @@ class BlackCardOperation(WhiteCardOperation):
         
     async def __call__(self, message: Message, status: str = 'black') -> int:
         card = await super().__call__(message, status, return_card=True)
+        if not card:
+            return None
         count = 0
         async for search_message in self.client.search_global(card):
             try:
@@ -88,7 +90,7 @@ class ModerateCardNumbersOperation(BaseOperation):
             card = search_result.group()
             
             async with self.uow as session:
-                is_exists = await session.card.fetch_one(card=card, status='black')
+                is_exists = await session.card.fetch_one(card=int(card), status='black')
                 await session.commit()
                 
             if is_exists:

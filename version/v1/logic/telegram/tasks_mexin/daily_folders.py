@@ -2,9 +2,11 @@ from loguru import logger
 from pyrogram.raw.types import DialogFilter
 from pyrogram import raw, errors
 from src.logic.telegram.tasks_mexin.daily_folders import DailyFoldersMexinInterface
+import asyncio
+from src.uow.base import BaseUowInterface
 
 class DailyFoldersMexin(DailyFoldersMexinInterface):
-    async def send_users_to_daily_folders(self, shift: 'OutputShift'):
+    async def send_users_to_daily_folders(self, shift: 'OutputShift', uow: BaseUowInterface):
         with logger.catch():
             logger.info('Function **dispatch_users_via_daily_folders** started')
             # Getting necessary folders
@@ -16,14 +18,18 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
             # Creating non existing folders
             non_existing_folders_titles = await self._get_daily_folders_titles(shift=shift) - folders_titles
             logger.info(f'FOLDERS | non existing folders titles  -  {folders}')
-            folders.extend(
-                await self.dialog_manager.create_dialog_filter(
+            # Создаем папки последовательно с задержкой
+            new_folders = []
+            for title in non_existing_folders_titles:
+                new_folder = await self.dialog_manager.create_dialog_filter(
                     new_folder_id=await self.folder_utils.get_new_folder_id(),
                     title=title,
                     users=await self.folder_utils.get_default_users()
                 )
-                for title in non_existing_folders_titles
-            )
+                new_folders.append(new_folder)
+                await asyncio.sleep(0.5)  # Задержка 500ms между запросами
+            
+            folders.extend(new_folders)
 
             grouped_folders = self.folder_utils.group_folders(folders)
             for category, category_folders in grouped_folders.items():
@@ -42,7 +48,7 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
                     users_to_del_count = 0
                 logger.info(f'FOLDERS | Count users to delete - {users_to_del_count}')
                 old_users_ids = self.folder_utils.extract_ids_from_peers(general_set_total)
-                async with self.uow as session:
+                async with uow as session:
                     old_users_to_delete = await session.user.fetch_all(
                         session.user._model.id.in_(old_users_ids),
                         limit=users_to_del_count,

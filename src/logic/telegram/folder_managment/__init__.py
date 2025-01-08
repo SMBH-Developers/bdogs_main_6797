@@ -35,7 +35,6 @@ class TelegramFolderManager(Generic[T]):
                 for name, dependency in dependencies.items()
                 if name in params
             }
-            logger.debug(f"Dependencies: {deps}")
             return manager(**deps)
         
         return create_instance

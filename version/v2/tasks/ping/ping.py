@@ -54,6 +54,7 @@ async def chain_ping(
     user_id: int,
     message: types.Message,
     job_id: str,
+    created_at: int,
     mock_client: Optional[MockClient] = None
 ) -> Optional[types.Message]:
     '''

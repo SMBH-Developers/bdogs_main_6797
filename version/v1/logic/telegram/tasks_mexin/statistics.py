@@ -131,7 +131,6 @@ class StatisticsMexin(StatisticsMexinInterface):
 
     async def get_folder_stats_today(self, users_with_folder: list[OutputUser]):# TODO: написать вывод через генерацию и исключением имен (которые стасу не нравятся)
         users_with_folder_dict, relevant_dialogs = await self._get_users_and_dialogs(users_with_folder)
-        logger.info(f'relevant_dialogs: {relevant_dialogs}, users_with_folder_dict: {users_with_folder_dict}')
         folder_counts = {"Нет папки": 0}
         # result_parts = {}
         

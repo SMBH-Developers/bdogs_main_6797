@@ -11,7 +11,6 @@ class Settings(BaseSettings):
     api_id: int
     api_hash: str
     phone_number: str
-    # GOOGLE_CREDS: Annotated[dict, Any]
 
     postgres_dsn: PostgresDsn
 

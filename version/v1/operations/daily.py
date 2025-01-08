@@ -26,4 +26,4 @@ class DailyFoldersOperation(BaseOperation):
                 is_deleted=False
             )
             await session.commit()
-        await self.logic.send_users_to_daily_folders(shift=shift)
+        await self.logic.send_users_to_daily_folders(shift=shift, uow=self.uow)

@@ -29,6 +29,19 @@ services:
     networks:
       - app_network
 
+  auth:
+    build:
+      context: .
+      dockerfile: app.dockerfile
+    container_name: bdocs_auth
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    command: "poetry run python get_dialogs.py"
+    networks:
+      - app_network
+
 volumes:
   redis_data:
 

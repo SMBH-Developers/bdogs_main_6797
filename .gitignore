@@ -172,3 +172,6 @@ data/json/*.json
 *.aof.*
 *.rdb
 *.rdb.*
+
+data/*
+!data/files/

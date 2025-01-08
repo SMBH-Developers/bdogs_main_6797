@@ -20,6 +20,7 @@ tgcrypto = "^1.2.5"
 asyncpg = "^0.30.0"
 google-auth = "^2.36.0"
 gspread-asyncio = "^2.0.0"
+telethon = "^1.38.1"
 
 
 [tool.poetry.group.dev.dependencies]

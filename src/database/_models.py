@@ -8,6 +8,7 @@ from sqlalchemy import (
     String,
     text,
     ForeignKey,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import (
     Mapped,
@@ -52,7 +53,16 @@ class Shift(Base):
     id: Mapped[int] = mapped_column(BIGINT, autoincrement=True, primary_key=True)
     date: Mapped[date] = mapped_column(DATE)
     
-    managers: Mapped[List['Managers']] = relationship(secondary='managers_shifts', back_populates='shifts')
+    managers: Mapped[List['Managers']] = relationship(
+        secondary='managers_shifts',
+        back_populates='shifts',
+        cascade='all',
+        passive_deletes=True
+    )
+
+    __table_args__ = (
+        UniqueConstraint('date', name='shift_date_key'),
+    )
 
 
 class Managers(Base):
@@ -64,11 +74,21 @@ class Managers(Base):
     id: Mapped[int] = mapped_column(BIGINT, autoincrement=True, primary_key=True)
     prefix_name: Mapped[str] = mapped_column(String(16), unique=True)
     
-    shifts: Mapped[List['Shift']] = relationship(secondary='managers_shifts', back_populates='managers')
+    shifts: Mapped[List['Shift']] = relationship(
+        secondary='managers_shifts',
+        back_populates='managers',
+        passive_deletes=True
+    )
 
 
 class ManagersShift(Base):
     __tablename__ = 'managers_shifts'
 
-    shift_id: Mapped[int] = mapped_column(ForeignKey('shifts.id'), primary_key=True)
-    manager_id: Mapped[int] = mapped_column(ForeignKey('managers_list.id'), primary_key=True)
+    shift_id: Mapped[int] = mapped_column(
+        ForeignKey('shifts.id', ondelete='CASCADE'),
+        primary_key=True
+    )
+    manager_id: Mapped[int] = mapped_column(
+        ForeignKey('managers_list.id', ondelete='RESTRICT'),
+        primary_key=True
+    )
