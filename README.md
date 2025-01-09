@@ -40,6 +40,11 @@ REDIS_PASSWORD=your_password
 
 3. Создание указанной базы данных
 
+4 Созздание директории для сессии
+```bash
+mkdir -p data/sessions/
+```
+
 ### 2️⃣ Запуск с помощью Docker
 
 1. Соберите Docker образы:
