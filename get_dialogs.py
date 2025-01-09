@@ -10,7 +10,7 @@ import os
 api_id = settings.api_id
 api_hash = settings.api_hash
 phone = settings.phone_number
-directory = SESSIONS_DIR
+directory = "data/sessions/"
 session_path = directory + settings.name
 
 

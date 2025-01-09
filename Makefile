@@ -3,7 +3,7 @@
 # Переменные
 DC = docker compose
 NAME = $(shell grep NAME .env | cut -d '=' -f2)
-SESSION_FILE = src/$(NAME).session
+SESSION_FILE = data/sessions/$(NAME).session
 
 help:
 	@echo "Доступные команды:"
@@ -76,3 +76,22 @@ rebuild-app:
 	@$(DC) run --rm auth
 	@$(DC) up -d app
 	@echo "Пересборка завершена"
+
+migrate:
+	@if [ -z "$(migrate_name)" ]; then \
+		echo "Ошибка: Укажите имя миграции (make migrate migrate_name=название_миграции)"; \
+		exit 1; \
+	fi
+	@echo "Создание миграции..."
+	@$(DC) exec app alembic revision --autogenerate -m "$(migrate_name)"
+	@echo "Миграция создана"
+
+migrate_up:
+	@echo "Проведение миграции..."
+	@$(DC) exec app alembic upgrade head
+	@echo "Миграция проведена"
+
+migrate_down:
+	@echo "Откат миграции..."
+	@$(DC) exec app alembic downgrade
+	@echo "Миграция откатана"
