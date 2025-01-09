@@ -28,6 +28,7 @@ services:
       - redis
     networks:
       - bdocs_main_6797
+      - host_network
 
   auth:
     build:
@@ -47,3 +48,7 @@ volumes:
 
 networks:
   bdocs_main_6797:
+  host_network:
+    driver: bridge
+    driver_opts:
+      parent: host
