@@ -14,6 +14,22 @@ services:
     networks:
       - bdocs_main_6797
 
+  db:
+    image: postgres:latest
+    container_name: bdocs_main_6797_db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:rw
+
   app:
     build:
       context: .
@@ -28,7 +44,6 @@ services:
       - redis
     networks:
       - bdocs_main_6797
-      - host_network
 
   auth:
     build:
@@ -48,7 +63,3 @@ volumes:
 
 networks:
   bdocs_main_6797:
-  host_network:
-    driver: bridge
-    driver_opts:
-      parent: host

@@ -32,15 +32,18 @@ NAME=your_session_name
 API_ID=your_telegram_api_id
 API_HASH=your_telegram_api_hash
 PHONE_NUMBER=your_phone_number
-POSTGRES_DSN=postgresql+asyncpg://user:password@localhost:5432/dbname
+POSTGRES_DSN=postgresql+asyncpg://user:password@db:5432/dbname
 REDIS_HOST_NAME=localhost
 REDIS_PORT=6380
 REDIS_PASSWORD=your_password
+POSTGRES_USER=your_user
+POSTGRES_PASSWORD=your_password
+POSTGRES_HOST_NAME=db
+POSTGRES_PORT=5435
+POSTGRES_DB=bdogs_main_6797
 ```
 
-3. Создание указанной базы данных
-
-4 Созздание директории для сессии
+3. Созздание директории для сессии
 ```bash
 mkdir -p data/sessions/
 ```
