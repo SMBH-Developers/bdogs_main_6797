@@ -41,7 +41,7 @@ start:
 	fi
 	@if [ -f $(SESSION_FILE) ]; then \
 		echo "Запуск сервисов..."; \
-		$(DC) start redis app; \
+		$(DC) start app; \
 		echo "Сервисы запущены!"; \
 	else \
 		echo "Ошибка: Файл сессии не создан. Проверьте процесс аутентификации."; \
