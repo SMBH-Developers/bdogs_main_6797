@@ -39,7 +39,7 @@ class WhiteCardOperation(BaseOperation):
                 is_exists = await session.card.fetch_one(card=input_card.card)
                 
                 if is_exists:
-                    await session.card.update_one(data=input_card)
+                    await session.card.update_one(data=input_card.model_dump(exclude={'card'}), card=input_card.card)
                 else:
                     await session.card.insert_one(input_card)
                     
