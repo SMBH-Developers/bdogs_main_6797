@@ -59,7 +59,7 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
                 users = (
                     self.folder_utils.extract_ids_from_peers(general_set_total) |
                     self.folder_utils.extract_ids_from_peers(general_set_today)
-                ) - set(old_users_to_delete)
+                ) - {user.id for user in old_users_to_delete}
                 logger.info(f'FOLDERS | End exctract ids from peers')
                 total_folder.include_peers = raw.core.List(await self.folder_utils.users_to_peers(users, ignore_peer_invalid=True))
 
