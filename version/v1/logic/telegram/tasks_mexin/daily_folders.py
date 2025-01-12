@@ -73,14 +73,20 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
                 logger.debug(f'FOLDERS | {category} | Today folder ({today_folder.title}): {len(today_folder.include_peers)} users')
                 logger.debug(f'FOLDERS | {category} | Total folder ({total_folder.title}): {len(total_folder.include_peers)} users')
 
-                logger.info(f'FOLDERS | Start exctract ids from peers')
-                # users = (
-                #     self.folder_utils.extract_ids_from_peers(general_set_total) |
-                #     self.folder_utils.extract_ids_from_peers(general_set_today)
-                # ) - {user.id for user in old_users_to_delete}
-                # logger.info(f'FOLDERS | End exctract ids from peers')
-                # total_folder.include_peers = raw.core.List(await self.folder_utils.users_to_peers(users, ignore_peer_invalid=True))
+                logger.debug(f'FOLDERS | {category} | Starting user extraction')
+                users = (
+                    self.folder_utils.extract_ids_from_peers(general_set_total) |
+                    self.folder_utils.extract_ids_from_peers(general_set_today)
+                ) - {user.id for user in old_users_to_delete}
+                logger.debug(f'FOLDERS | {category} | Combined users count: {len(users)}')
+                logger.info(f'FOLDERS | End exctract ids from peers')
+                new_peers = await self.folder_utils.users_to_peers(users, ignore_peer_invalid=True)
+                logger.info(f'FOLDERS | {category} | Converted peers count: {len(new_peers)}')
+                
+                total_folder.include_peers = raw.core.List(new_peers)
+                logger.info(f'FOLDERS | {category} | Updated total folder peers')
 
+                # total_folder.include_peers = raw.core.List(await self.folder_utils.users_to_peers(users, ignore_peer_invalid=True))
                 # **** Dont touch next
                 # In the end we clear Today directory
                 # today_folder.include_peers = raw.core.List([await self.client.resolve_peer('me')])
