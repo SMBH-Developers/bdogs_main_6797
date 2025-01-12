@@ -6,7 +6,7 @@ from src.logic.telegram.folder_managment import AllManagersFactoryInterface
 from src.uow.base import BaseUowInterface
 from src.operations.base import BaseOperation
 from version.v1.schemas.managers_shifts import OutputShift
-
+from loguru import logger
 
 class DailyFoldersOperation(BaseOperation):
     def __init__(
@@ -26,4 +26,5 @@ class DailyFoldersOperation(BaseOperation):
                 is_deleted=False
             )
             await session.commit()
-        await self.logic.send_users_to_daily_folders(shift=shift, uow=self.uow)
+            logger.debug(f'FOLDERS | Shift - {", ".join(manager.prefix_name for manager in shift.managers)}')
+        # await self.logic.send_users_to_daily_folders(shift=shift, uow=self.uow)

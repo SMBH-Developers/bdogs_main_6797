@@ -11,9 +11,9 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
             logger.info('Function **dispatch_users_via_daily_folders** started')
             # Getting necessary folders
             folders = await self.get_daily_folders(shift=shift)
-            logger.info(f'FOLDERS | get_daily_folders  -  {folders}')
+            # logger.info(f'FOLDERS | get_daily_folders  -  {folders}')
             folders_titles = set(folder.title for folder in folders)
-            logger.info(f'FOLDERS | folders title  -  {folders}')
+            # logger.info(f'FOLDERS | folders title  -  {folders}')
 
             # Creating non existing folders
             non_existing_folders_titles = await self._get_daily_folders_titles(shift=shift) - folders_titles
