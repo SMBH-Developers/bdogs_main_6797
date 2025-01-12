@@ -42,10 +42,14 @@ class DailyFoldersManager(DailyFoldersManagerInterface, DailyFoldersMexin):
             }
         '''
         folders_days = FolderDay[day].value
+        logger.debug(f"Folders days: {folders_days}")
+        logger.debug(f"Shift managers: {[m.prefix_name for m in shift.managers]}")
+        
         folders_titles = {
             f'{folder_day} {manager.prefix_name}'
             for folder_day, manager in product(folders_days, shift.managers)
         }
+        logger.debug(f"Generated folder titles: {folders_titles}")
         return folders_titles
     
     def _folders_filters(self, folders_titles: set[str]) -> Callable[[DialogFilter], bool]:
@@ -55,11 +59,12 @@ class DailyFoldersManager(DailyFoldersManagerInterface, DailyFoldersMexin):
     
     async def get_daily_folders(self, shift: OutputShift) -> list[DialogFilter]:
         folders_titles = await self._get_daily_folders_titles(shift=shift)
-
+        logger.debug(f"Folders titles: {folders_titles}")
         # Getting necessary folders
         folders = await self.dialog_manager.get_dialog_filters(
             self._folders_filters(folders_titles)
         )
+        logger.debug(f"Folders: {[folder.title for folder in folders]}")
         return folders
     
     async def get_today_folders(self, shift: OutputShift) -> list[DialogFilter]:

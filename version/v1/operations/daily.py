@@ -24,7 +24,6 @@ class DailyFoldersOperation(BaseOperation):
             shift: OutputShift = await session.shift.fetch_one(
                 date_=date.today(),
                 is_deleted=False
-            )
+            ) # +
             await session.commit()
-            logger.debug(f'FOLDERS | Shift - {", ".join(manager.prefix_name for manager in shift.managers)}')
-        # await self.logic.send_users_to_daily_folders(shift=shift, uow=self.uow)
+        await self.logic.send_users_to_daily_folders(shift=shift, uow=self.uow)
