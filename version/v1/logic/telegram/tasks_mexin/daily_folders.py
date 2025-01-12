@@ -33,34 +33,47 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
             # folders.extend(new_folders)
 
             grouped_folders = self.folder_utils.group_folders(folders)
-            # logger.debug(f'FOLDERS | grouped_folders  -  {for ca in grouped_folders}')
             for category, category_folders in grouped_folders.items():
-                logger.debug(f'FOLDERS | category  -  {category}')
-            #     logger.debug(f'FOLDERS | category_folders  -  {category_folders}')
-            #     total_folder, today_folder = category_folders
-            #     logger.debug(f'FOLDERS | total_folder  -  {total_folder}')
-            #     ...
-                # today_folder: DialogFilter
-                # total_folder: DialogFilter
-                # general_set_today = today_folder.pinned_peers + today_folder.include_peers
-                # general_set_total = total_folder.pinned_peers + total_folder.include_peers
+                logger.debug(f'FOLDERS | Processing category  -  {category}')
+                total_folder, today_folder = category_folders
+                
+                today_folder: DialogFilter
+                total_folder: DialogFilter
+                general_set_today = today_folder.pinned_peers + today_folder.include_peers
+                general_set_total = total_folder.pinned_peers + total_folder.include_peers
+                
+                logger.debug(f'FOLDERS | {category} | Before processing:')
+                logger.debug(f'FOLDERS | {category} | Today folder ({today_folder.title}): {len(general_set_today)} users')
+                logger.debug(f'FOLDERS | {category} | Total folder ({total_folder.title}): {len(general_set_total)} users')
+                
+                # Логируем расчет количества пользователей для удаления
+                free_places_total_count = 200 - len(general_set_total)
+                logger.debug(f'FOLDERS | {category} | Free places in total folder: {free_places_total_count}')
+                if len(general_set_today) > free_places_total_count:
+                    users_to_del_count = len(general_set_today) - free_places_total_count
+                else:
+                    users_to_del_count = 0
+                logger.debug(f'FOLDERS | {category} | Users to delete: {users_to_del_count}')
+                
+                # Логируем извлечение пользователей
+                old_users_ids = self.folder_utils.extract_ids_from_peers(general_set_total)
+                logger.debug(f'FOLDERS | {category} | Old users IDs: {old_users_ids}')
+                
+                # Логируем перед асинхронной операцией
+                async with uow as session:
+                    old_users_to_delete = await session.user.fetch_all(
+                        session.user._model.id.in_(old_users_ids),
+                        limit=users_to_del_count,
+                    )
+                    logger.debug(f'FOLDERS | {category} | Old users to delete: {[user.id for user in old_users_to_delete]}')
+                    await session.commit()
+                
+                # Логируем после обработки
+                logger.debug(f'FOLDERS | {category} | After processing:')
+                logger.debug(f'FOLDERS | {category} | Today folder ({today_folder.title}): {len(today_folder.include_peers)} users')
+                logger.debug(f'FOLDERS | {category} | Total folder ({total_folder.title}): {len(total_folder.include_peers)} users')
 
-                # free_places_total_count = 200 - len(general_set_total)
-                # logger.info(f'FOLDERS | Free places total count - {free_places_total_count}')
-                # if len(general_set_today) > free_places_total_count:
-                #     users_to_del_count = len(general_set_today) - free_places_total_count
-                # else:
-                #     users_to_del_count = 0
-                # logger.info(f'FOLDERS | Count users to delete - {users_to_del_count}')
-                # old_users_ids = self.folder_utils.extract_ids_from_peers(general_set_total)
-                # async with uow as session:
-                #     old_users_to_delete = await session.user.fetch_all(
-                #         session.user._model.id.in_(old_users_ids),
-                #         limit=users_to_del_count,
-                #     )
-                #     await session.commit()
-
-                # logger.info(f'FOLDERS | Start exctract ids from peers')
+                logger.info(f'FOLDERS | Start exctract ids from peers')
                 # users = (
                 #     self.folder_utils.extract_ids_from_peers(general_set_total) |
                 #     self.folder_utils.extract_ids_from_peers(general_set_today)
@@ -68,8 +81,8 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
                 # logger.info(f'FOLDERS | End exctract ids from peers')
                 # total_folder.include_peers = raw.core.List(await self.folder_utils.users_to_peers(users, ignore_peer_invalid=True))
 
-                # # **** Dont touch next
-                # # In the end we clear Today directory
+                # **** Dont touch next
+                # In the end we clear Today directory
                 # today_folder.include_peers = raw.core.List([await self.client.resolve_peer('me')])
                 # today_folder.pinned_peers = raw.core.List([])
                 # logger.info(f'FOLDERS | Clear Today folder')
