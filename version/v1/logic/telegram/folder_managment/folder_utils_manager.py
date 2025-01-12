@@ -41,14 +41,16 @@ class FolderUtils(FolderUtilsInterface):
         for folder in folders:
             try:
                 category = folder.title.split()[-1]
-                folders_list = grouped.setdefault(category, [])
-                folders_list.append(folder)
+                if category not in grouped:
+                    grouped[category] = []
+                
+                logger.debug(f"Adding '{folder.title}' to '{category}', current folders: {[f.title for f in grouped[category]]}")
+                grouped[category].append(folder)
+                logger.debug(f"After adding: {category} has {[f.title for f in grouped[category]]}")
+                
             except (AttributeError, IndexError) as e:
-                logger.warning(f"Некорректное название папки: {folder}, ошибка: {e}")
+                logger.error(f"Failed to process folder: {folder.title if hasattr(folder, 'title') else folder}")
                 continue
-            
-        for folders_list in grouped.values():
-            folders_list.sort(key=lambda f: f.title.startswith('База'), reverse=True)
         
         return grouped
     

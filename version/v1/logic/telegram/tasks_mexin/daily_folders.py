@@ -34,12 +34,12 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
 
             grouped_folders = self.folder_utils.group_folders(folders)
             logger.debug(f'FOLDERS | grouped_folders  -  {grouped_folders}')
-            for category, category_folders in grouped_folders.items():
-                logger.debug(f'FOLDERS | category  -  {category}')
-                logger.debug(f'FOLDERS | category_folders  -  {category_folders}')
-                total_folder, today_folder = category_folders
-                logger.debug(f'FOLDERS | total_folder  -  {total_folder}')
-                ...
+            # for category, category_folders in grouped_folders.items():
+            #     logger.debug(f'FOLDERS | category  -  {category}')
+            #     logger.debug(f'FOLDERS | category_folders  -  {category_folders}')
+            #     total_folder, today_folder = category_folders
+            #     logger.debug(f'FOLDERS | total_folder  -  {total_folder}')
+            #     ...
                 # today_folder: DialogFilter
                 # total_folder: DialogFilter
                 # general_set_today = today_folder.pinned_peers + today_folder.include_peers
