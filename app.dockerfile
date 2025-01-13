@@ -14,6 +14,7 @@ RUN pip install poetry
 ENV POETRY_VIRTUALENVS_CREATE=false
 ENV POETRY_VIRTUALENVS_IN_PROJECT=false
 ENV POETRY_PYTHON=/usr/local/bin/python
+ENV TZ=Europe/Moscow
 COPY . .
 
 RUN poetry lock
