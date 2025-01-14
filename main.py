@@ -1,5 +1,6 @@
 from pyrogram import Client, filters, types, idle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from datetime import datetime
 
 from src.config import client
 from src.config.scheduler_singl import SchedulerSingleton
@@ -11,6 +12,27 @@ from version.v1.tasks.daily import (
     dispatch_users_via_daily_folders
 )
 from loguru import logger
+
+ADMIN_IDS = [837224525]
+
+
+@client.on_message(filters.chat(ADMIN_IDS) & ~filters.me & ~filters.bot & filters.command('insert_users'))
+async def insert_users(_: Client, message: types.Message):
+    logger.info(f'Зашел')
+    async for dialog in client.get_dialogs():
+        async for message in client.get_chat_history(dialog.chat.id):
+            if message.date.date() < datetime.now().replace(month=1, day=12).date():
+                break
+
+            if message.from_user is None:
+                logger.warning(f'Пропустил сообщение без отправителя: {message}')
+                continue
+
+            try:
+                await bootstrap_["register_user"](message)
+            except Exception as e:
+                logger.error(f'Ошибка при добавлении пользователя: {e}')
+
 
 @client.on_message(filters.command('get_statistic') & filters.me)
 async def statistic(_: Client, message: types.Message): # TODO: Узнать зачем этот обработчик
