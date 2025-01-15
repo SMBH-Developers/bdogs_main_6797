@@ -25,7 +25,10 @@ class FolderUtils(FolderUtilsInterface):
             try:
                 peers.append(await self.client.resolve_peer(user_id))
             except errors.PeerIdInvalid:
+                text = f"При преобразовании пользователей в peers произошла ошибка PeerIdInvalid: {user_id}"
+                logger.warning(text)
                 if not ignore_peer_invalid:
+                    logger.error(text)
                     raise
         return peers
     

@@ -12,9 +12,7 @@ from version.v1.tasks.daily import (
     dispatch_users_via_daily_folders
 )
 from loguru import logger
-
-ADMIN_IDS = [837224525]
-
+from src.utils.constants import ADMIN_IDS
 
 @client.on_message(filters.chat(ADMIN_IDS) & ~filters.me & ~filters.bot & filters.command('insert_users'))
 async def insert_users(_: Client, message: types.Message):
@@ -112,8 +110,8 @@ async def main(scheduler: AsyncIOScheduler):
     )
     scheduler.add_job(
         trigger='cron',
-        hour='00',
-        minute='00',
+        hour='15', # 00
+        minute='33', # 00
         func=dispatch_users_via_daily_folders,
         replace_existing=True,
         misfire_grace_time=120,
