@@ -1,11 +1,11 @@
 from typing import Optional
 from sqlalchemy import select, func
+from sqlalchemy import Column, Any
 from datetime import datetime
 from .base import BaseRepository
 from src.repository.user import UserRepositoryInterface
 from src.database._models import User
 from version.v1.schemas.users import InputUser, OutputUser
-
 
 class UserRepository(BaseRepository[User, InputUser, OutputUser]):
     '''Является реализацией интерфейса UserRepositoryInterface'''
@@ -13,8 +13,13 @@ class UserRepository(BaseRepository[User, InputUser, OutputUser]):
     _output_schema = OutputUser
     _input_schema = InputUser
 
-    async def fetch_all(self, *filters, offset: int = 0, limit: int = 1000) -> Optional[list[OutputUser]]:
-        stmt = select(self._model).filter(*filters).offset(offset).limit(limit)
+    async def fetch_all(self, *filters, offset: int = 0, limit: int = 1000, order_by: list[Column[Any]] = []) -> Optional[list[OutputUser]]:
+        stmt = select(self._model).filter(*filters)
+        
+        if order_by:
+            stmt = stmt.order_by(*order_by)
+            
+        stmt = stmt.offset(offset).limit(limit)
         result = (await self.session.execute(stmt)).scalars().all()
         if result:
             result = [self._output_schema.model_validate(entity, from_attributes=True) for entity in result]

@@ -62,7 +62,7 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
                 async with uow as session:
                     old_users_to_delete = await session.user.fetch_all(
                         session.user._model.id.in_(old_users_ids),
-                        session.user._model.registration_date.asc(), # сортировка по дате регистрации (сначала старые)
+                        order_by=[session.user._model.registration_date.asc()], # сортировка по дате регистрации (сначала старые)
                         limit=users_to_del_count,
                     )
                     logger.debug(f'FOLDERS | {category} | Old users to delete: {[user.id for user in old_users_to_delete]}')
