@@ -86,23 +86,23 @@ class DailyFoldersMexin(DailyFoldersMexinInterface):
                 total_folder.include_peers = raw.core.List(new_peers) # Определяем новые peers в папке базы
                 logger.info(f'FOLDERS | {category} | Updated total folder peers')
 
-                # # **** Dont touch next
-                # # In the end we clear Today directory
-                # today_folder.include_peers = raw.core.List([await self.client.resolve_peer('me')])
-                # today_folder.pinned_peers = raw.core.List([])
-                # logger.info(f'FOLDERS | Clear Today folder')
-                # # Update today and total folders:
-                # logger.info(f'FOLDERS | Start insert users in folders - Today and Total')
-                # try:
-                #     await self.client.invoke(raw.functions.messages.UpdateDialogFilter(id=today_folder.id, filter=today_folder))
-                #     logger.info(f'FOLDERS | Inserted users in folder Today')
-                #     await asyncio.sleep(1)
-                # except Exception as e:
-                #     logger.error(f'FOLDERS | Error inserting users in folder Today: {e}')
-                #     continue
-                # try:
-                #     await self.client.invoke(raw.functions.messages.UpdateDialogFilter(id=total_folder.id, filter=total_folder))
-                #     logger.info(f'FOLDERS | Inserted users in folder Total')
-                # except Exception as e:
-                #     logger.error(f'FOLDERS | Error inserting users in folder Total: {e}')
-                # await asyncio.sleep(5)
+                # **** Dont touch next
+                # In the end we clear Today directory
+                today_folder.include_peers = raw.core.List([await self.client.resolve_peer('me')])
+                today_folder.pinned_peers = raw.core.List([])
+                logger.info(f'FOLDERS | Clear Today folder')
+                # Update today and total folders:
+                logger.info(f'FOLDERS | Start insert users in folders - Today and Total')
+                try:
+                    await self.client.invoke(raw.functions.messages.UpdateDialogFilter(id=today_folder.id, filter=today_folder))
+                    logger.info(f'FOLDERS | Inserted users in folder Today')
+                    await asyncio.sleep(1)
+                except Exception as e:
+                    logger.error(f'FOLDERS | Error inserting users in folder Today: {e}')
+                    continue
+                try:
+                    await self.client.invoke(raw.functions.messages.UpdateDialogFilter(id=total_folder.id, filter=total_folder))
+                    logger.info(f'FOLDERS | Inserted users in folder Total')
+                except Exception as e:
+                    logger.error(f'FOLDERS | Error inserting users in folder Total: {e}')
+                await asyncio.sleep(5)
