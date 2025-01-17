@@ -66,9 +66,13 @@ class DialogManager(DialogManagerInterface):
                 logger.info(f"{filter_title} has limit peers. So user [{peer_id}] wasn't add to filter")
                 return
             dialog_filter.include_peers.append(peer)
-            await self.client.invoke(
-                raw.functions.messages.UpdateDialogFilter(
-                    id=dialog_filter.id, 
-                    filter=dialog_filter
+            try:
+                await self.client.invoke(
+                    raw.functions.messages.UpdateDialogFilter(
+                        id=dialog_filter.id, 
+                        filter=dialog_filter
+                    )
                 )
-            )
+            except Exception as e:
+                logger.error(f'Error adding peer to filter: {e}')
+                return

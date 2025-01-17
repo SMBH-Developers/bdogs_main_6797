@@ -60,8 +60,10 @@ class RegisterUserOperation(BaseOperation):
         async with self.uow as session:
             user_session = session.user
             if not await user_session.fetch_one(id=message.from_user.id):
+                logger.debug(f'User message: [{message.text}], message date: {message.date}')
                 await user_session.insert_one(data={'id': message.from_user.id})
                 await session.commit()
+                logger.info(f'[{message.from_user.id}] user added')
                 await self._send_text_with_name(message, session)
                 return
             
