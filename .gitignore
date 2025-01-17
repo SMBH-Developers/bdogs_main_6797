@@ -175,3 +175,5 @@ data/json/*.json
 
 data/*
 !data/files/
+*.swp
+*.swp.*
