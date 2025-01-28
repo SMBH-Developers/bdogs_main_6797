@@ -3,22 +3,23 @@ services:
     build:
       context: .
       dockerfile: redis.dockerfile
-    container_name: redis_bot_app
+    container_name: ${PROJECT_NAME}_app
     restart: unless-stopped
     user: redis
     ports:
-      - 6380:6380
+      - ${REDIS_PORT}:6379
     volumes:
       - redis_data:/data
       - ./src/config/redis.conf:/usr/local/etc/redis/redis.conf:ro
     networks:
-      - bdocs_main_6797
+      - bdocs_main_copy
 
   db:
     image: postgres:latest
-    container_name: bdocs_main_6797_db
+    container_name: ${PROJECT_NAME}_db
     env_file:
       - .env
+    restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -30,22 +31,22 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data:rw
     networks:
-      - bdocs_main_6797
+      - bdocs_main_copy
 
   app:
     build:
       context: .
       dockerfile: app.dockerfile
-    container_name: bdocs_main_6797
+    container_name: ${PROJECT_NAME}_app
     env_file:
       - .env
-    restart: unless-stopped
+    restart: no
     volumes:
       - .:/app
     depends_on:
       - redis
     networks:
-      - bdocs_main_6797
+      - bdocs_main_copy
 
   auth:
     build:
@@ -58,11 +59,12 @@ services:
       - .:/app
     command: "poetry run python get_dialogs.py"
     networks:
-      - bdocs_main_6797
+      - bdocs_main_copy
 
 volumes:
   redis_data:
   postgres_data:
 
 networks:
-  bdocs_main_6797:
+  bdocs_main_copy:
+    external: true
