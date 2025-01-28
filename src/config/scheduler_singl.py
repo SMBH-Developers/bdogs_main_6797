@@ -30,7 +30,7 @@ class SchedulerSingleton(Singleton, AsyncIOScheduler):
                     run_times_key='dispatched_trips_running',
                     host=settings.REDIS_HOST_NAME,
                     db=settings.REDIS_JOB_DATABASES_TEST if settings.MODE == 'TEST' else settings.REDIS_JOB_DATABASES,
-                    port=settings.REDIS_PORT,
+                    port=6379,
                     password=settings.REDIS_PASSWORD
                 )
             }
