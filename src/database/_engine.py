@@ -12,6 +12,7 @@ DATABASE_PARAMS = {
     'max_overflow': 10,
     'pool_timeout': 30,
     'pool_recycle': 1800,
+    'pool_reset_on_return': 'commit',
     'echo': False,
 }
 

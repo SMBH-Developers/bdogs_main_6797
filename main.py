@@ -1,6 +1,8 @@
 from pyrogram import Client, filters, types, idle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from datetime import datetime
+from functools import wraps
+import asyncio
 
 from src.config import client
 from src.config.scheduler_singl import SchedulerSingleton
@@ -82,28 +84,72 @@ async def registration_user(_: Client, message: types.Message):
     await bootstrap_["register_user"](message)
 
 
+async def with_retries(
+    func,
+    retries: int = 3,
+    delay: float = 2.0,
+    exception_type: type = Exception,
+    error_message: str = "Operation failed"
+):
+    """
+    Декоратор для выполнения функции с повторными попытками
+    
+    Args:
+        func: Асинхронная функция для выполнения
+        retries: Количество попыток
+        delay: Задержка между попытками в секундах
+        exception_type: Тип исключения для перехвата
+        error_message: Сообщение об ошибке
+    """
+    for attempt in range(retries):
+        try:
+            return await func()
+        except exception_type as e:
+            if attempt == retries - 1:  # Последняя попытка
+                logger.error(f"{error_message}: {e}")
+                raise
+            
+            logger.warning(f"Attempt {attempt + 1}/{retries} failed: {e}")
+            await asyncio.sleep(delay)
+    
+    raise RuntimeError(f"Failed after {retries} attempts")
+
 async def init_db_pool():
     from src.database._engine import engine
     from sqlalchemy import text
-    try:
-        # Создаем тестовое подключение при старте
+    
+    async def _init_pool():
         async with engine.connect() as conn:
-
             await conn.execute(text("SELECT 1"))
             logger.info("Database pool initialized successfully")
             
-    except Exception as e:
-        logger.error(f"Failed to initialize database pool: {e}")
-    
-    finally:
         pool = engine.pool
-        logger.info(f"""
+        status = f"""
         Pool status:
         - Size: {pool.size()}
         - Checked out connections: {pool.checkedin()}
         - Available connections: {pool.checkedout()}
         - Overflow: {pool.overflow()}
-        """)
+        """
+        logger.info(status)
+        
+        # Проверяем корректность состояния пула
+        if pool.overflow() < 0:
+            raise RuntimeError("Pool in invalid state")
+            
+        return True
+    
+    try:
+        await with_retries(
+            func=_init_pool,
+            retries=3,
+            delay=2.0,
+            exception_type=(Exception,),
+            error_message="Database pool initialization failed"
+        )
+    except Exception as e:
+        logger.error(f"Failed to initialize database pool: {e}")
+        raise
 
 async def main(scheduler: AsyncIOScheduler):
     await client.start()
