@@ -154,7 +154,7 @@ async def init_db_pool():
 async def main(scheduler: AsyncIOScheduler):
     await client.start()
     logger.info('Client started')
-    await init_db_pool()
+    # await init_db_pool()
     # managers_today = await db.get_managers_today()
     # print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
     # asyncio.create_task(parse_users())
