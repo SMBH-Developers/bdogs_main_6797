@@ -36,9 +36,9 @@ class RegisterUserOperation(BaseOperation):
         self.dialog_manager: DialogManagerInterface = all_managers.dialog
         
     async def _send_text_with_name(self, message: Message, session: BaseUowInterface):
-        name = await self.get_name_function(message.from_user.id)
+        # name = await self.get_name_function(message.from_user.id)
         await asyncio.sleep(10)
-        await self.client.send_message(message.from_user.id, text=f'Здравствуйте, {name}! Меня зовут Раяна! ☀️' if name else 'Здравствуйте! Меня зовут Раяна! ☀️')
+        await self.client.send_message(message.from_user.id, text='Здравствуйте! Меня зовут Раяна! ☀️')
         await asyncio.sleep(5)
         text = 'Я профессионально занимаюсь диагностикой и чисткой энергетических центров (чакр) и помогаю людям гармонизировать все сферы их жизни с помощью индивидуальных практик уже более 14 лет! 😊\n\nВ своей работе я использую методы энергетической диагностики чакр, а также являюсь экспертом по анализу и коррекции энергетических потоков человека.\n\n📌 Вы можете лучше познакомиться со мной в моем Instagram:\n╚ instagram.com/rayana.soul\n\n🔗 Узнать больше информации обо мне и моих услугах на сайте:\n╚ taplink.cc/rayana_soul\n\n✈️ Подписаться на мой личный telegram-канал:\n╚ @rayana_channel\n\n💬 А так же посмотреть и послушать отзывы о моей работе:\n╚ t.me/+o0R99vpbnw01ZjYy'
         await self.client.send_photo(message.from_user.id, photo='data/files/start.jpg', caption=text)
@@ -46,7 +46,8 @@ class RegisterUserOperation(BaseOperation):
         try:
             await session.user.update_one(data={'get_message': True}, id=message.from_user.id)
             await session.commit()
-                
+            await session.close()
+            
             await self.ping_function(
                 user_id=message.from_user.id,
                 message=self_message,
@@ -62,7 +63,6 @@ class RegisterUserOperation(BaseOperation):
             if not await user_session.fetch_one(id=message.from_user.id):
                 logger.debug(f'User message: [{message.text}], message date: {message.date}')
                 await user_session.insert_one(data={'id': message.from_user.id})
-                await session.commit()
                 logger.info(f'[{message.from_user.id}] user added')
                 await self._send_text_with_name(message, session)
                 return

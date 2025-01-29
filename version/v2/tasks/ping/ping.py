@@ -73,7 +73,7 @@ async def chain_ping(
                 client_,
                 user_id,
                 ping_step,
-                name=name if (name := await get_name(user_id)) else ''
+                name=''
             ):
                 await db.set_ping_step(user_id, PingText.get_next_step(ping_step))
                 return message
