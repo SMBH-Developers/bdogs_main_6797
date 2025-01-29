@@ -145,13 +145,8 @@ class StatisticsMexin(StatisticsMexinInterface):
         
         # result = '\n'.join(result_parts.values()) + "\n\n"
         result = ""
-        result += "Сегодня Су: {}\n".format(folder_counts.get("Су", 0))
-        result += "Сегодня Ек2: {}\n".format(folder_counts.get("Ек2", 0))
-        result += "Сегодня Ан: {}\n".format(folder_counts.get("Ан", 0))
-        result += "Сегодня Та: {}\n".format(folder_counts.get("Та", 0))
-        result += "Сегодня Ве: {}\n".format(folder_counts.get("Ве", 0))
-        result += "Сегодня Да: {}\n".format(folder_counts.get("Да", 0))
-        result += "Сегодня Стас: {}\n\n".format(folder_counts.get("Стас", 0))
+        result += "Сегодня Ал: {}\n".format(folder_counts.get("Ал", 0))
+        result += "Сегодня Ал2: {}\n\n".format(folder_counts.get("Ал2", 0))
 
         total_in_folders = sum(folder_counts.values()) - folder_counts["Нет папки"]
         result += "Всего в папках: {}\n\n".format(total_in_folders)
