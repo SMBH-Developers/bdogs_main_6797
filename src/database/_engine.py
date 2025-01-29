@@ -8,7 +8,7 @@ from loguru import logger
 # else:
 DATABASE_PARAMS = {
     'pool_pre_ping': True,
-    'pool_size': 5,
+    'pool_size': 15,
     'max_overflow': 10,
     'pool_timeout': 30,
     'pool_recycle': 1800,
