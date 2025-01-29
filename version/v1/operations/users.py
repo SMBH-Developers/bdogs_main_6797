@@ -74,7 +74,7 @@ class RegisterUserOperation(BaseOperation):
                 )
                 logger.debug(f'shift_today: {shift_today}')
                 folders = await self.daily_folders_manager.get_today_folders(shift=shift_today)
-                await session.commit()
+                
                 managers_today = [manager.prefix_name for manager in shift_today.managers]
                 folders = [
                     folder for folder in folders

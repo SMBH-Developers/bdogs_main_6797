@@ -82,9 +82,23 @@ async def registration_user(_: Client, message: types.Message):
     await bootstrap_["register_user"](message)
 
 
+async def init_db_pool():
+    from src.database._engine import engine
+    from sqlalchemy import text
+    try:
+        # Создаем тестовое подключение при старте
+        async with engine.connect() as conn:
+
+            await conn.execute(text("SELECT 1"))
+            logger.info("Database pool initialized successfully")
+    except Exception as e:
+        logger.error(f"Failed to initialize database pool: {e}")
+        
+
 async def main(scheduler: AsyncIOScheduler):
     await client.start()
     logger.info('Client started')
+    await init_db_pool()
     # managers_today = await db.get_managers_today()
     # print(managers_today.split(" ") if managers_today is not None else ['Су', 'Ек2', 'Ка', 'Ек', 'Ан', 'Эл', 'Та', 'Ве'])
     # asyncio.create_task(parse_users())
@@ -111,7 +125,7 @@ async def main(scheduler: AsyncIOScheduler):
     scheduler.add_job(
         trigger='cron',
         hour='12', # 00
-        minute='10', # 00
+        minute='28', # 00
         func=dispatch_users_via_daily_folders,
         replace_existing=True,
         misfire_grace_time=120,
