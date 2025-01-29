@@ -91,9 +91,19 @@ async def init_db_pool():
 
             await conn.execute(text("SELECT 1"))
             logger.info("Database pool initialized successfully")
+            
     except Exception as e:
         logger.error(f"Failed to initialize database pool: {e}")
-        
+    
+    finally:
+        pool = engine.pool
+        logger.info(f"""
+        Pool status:
+        - Size: {pool.size()}
+        - Checked out connections: {pool.checkedin()}
+        - Available connections: {pool.checkedout()}
+        - Overflow: {pool.overflow()}
+        """)
 
 async def main(scheduler: AsyncIOScheduler):
     await client.start()

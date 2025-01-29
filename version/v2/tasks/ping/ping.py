@@ -40,6 +40,7 @@ async def ping(
             id=job_id,
             replace_existing=True,
             misfire_grace_time=300,
+            max_instances=1,
             coalesce=True
         )
         logger.info(f'Ping task for user {user_id} created')
