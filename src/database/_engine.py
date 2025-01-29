@@ -13,12 +13,6 @@ DATABASE_PARAMS = {
     'pool_timeout': 30,
     'pool_recycle': 1800,
     'echo': False,
-    'connect_args': {
-        # "keepalives": 1,
-        "keepalives_idle": 30,
-        "keepalives_interval": 10,
-        "keepalives_count": 5
-    }
 }
 
 engine = create_async_engine(settings.postgres_dsn.unicode_string(), **DATABASE_PARAMS)
