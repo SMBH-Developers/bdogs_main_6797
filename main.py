@@ -125,10 +125,10 @@ async def main(scheduler: AsyncIOScheduler):
     scheduler.add_job(
         trigger='cron',
         hour='12', # 00
-        minute='28', # 00
+        minute='33', # 00
         func=dispatch_users_via_daily_folders,
         replace_existing=True,
-        misfire_grace_time=120,
+        misfire_grace_time=500,
         coalesce=True,
         id='dispatch_users_via_daily_folders'
     )
