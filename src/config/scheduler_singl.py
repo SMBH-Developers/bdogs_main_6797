@@ -36,7 +36,7 @@ class SchedulerSingleton(Singleton, AsyncIOScheduler):
             }
             executors = {
                 'default': AsyncIOExecutor(),
-                'processpool': ProcessPoolExecutor(3)
+                # 'processpool': ProcessPoolExecutor(3)
             }
             super().__init__(
                 {'apscheduler.timezone': 'Europe/Moscow'},
